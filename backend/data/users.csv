@@ -1,0 +1,11 @@
+email,name,role,password
+admin@email.com,Administrador,admin,admin123
+juan.perez@email.com,Juan Pérez,fin,123456
+lucia.vega@email.com,Lucía Vega,viewer,123456
+maria.lopez@email.com,María López,fin,abcdef
+carlos.garcia@email.com,Carlos García,viewer,pass123
+ana.martinez@email.com,Ana Martínez,fin,clave123
+luis.fernandez@email.com,Luis Fernández,viewer,miPass
+laura.sanchez@email.com,Laura Sánchez,fin,1234abcd
+javier.gomez@email.com,Javier Gómez,viewer,password
+carmen.ruiz@email.com,Carmen Ruiz,admin,adminpass

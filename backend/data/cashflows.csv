@@ -1,0 +1,31 @@
+accountAlias,categoryName,counterpartyNif,date,amount,type,concept,status
+ACC_001,Sueldo,A12345678,2025-09-01,2500,in,Salario mensual,planned
+ACC_002,Alquiler,B23456789,2025-09-02,800,out,Alquiler piso,planned
+ACC_003,Compras,C34567890,2025-09-03,120,out,Supermercado,planned
+ACC_004,Transporte,D45678901,2025-09-04,50,out,Taxi,planned
+ACC_005,Entretenimiento,E56789012,2025-09-05,70,out,Cine,planned
+ACC_006,Servicios,F67890123,2025-09-06,90,out,Luz y agua,planned
+ACC_007,Salud,G78901234,2025-09-07,200,out,Medicamentos,planned
+ACC_008,Educación,H89012345,2025-09-08,500,out,Curso online,planned
+ACC_009,Inversiones,I90123456,2025-09-09,1000,in,Dividendos,planned
+ACC_010,Otros,J01234567,2025-09-10,30,out,Gastos varios,planned
+ACC_011,Comida,K12345678,2025-09-11,60,out,Restaurante,planned
+ACC_012,Seguros,L23456789,2025-09-12,150,out,Seguro coche,planned
+ACC_013,Tecnología,M34567890,2025-09-13,400,out,Ordenador,planned
+ACC_014,Viajes,N45678901,2025-09-14,1200,out,Vuelo,planned
+ACC_015,Hogar,O56789012,2025-09-15,300,out,Muebles,planned
+ACC_016,Mascotas,P67890123,2025-09-16,80,out,Alimentos perro,planned
+ACC_017,Regalos,Q78901234,2025-09-17,100,out,Regalo cumpleaños,planned
+ACC_018,Deportes,R89012345,2025-09-18,50,out,Equipo deportivo,planned
+ACC_019,Donaciones,S90123456,2025-09-19,40,out,ONG,planned
+ACC_020,Impuestos,T01234567,2025-09-20,300,out,IRPF,planned
+ACC_021,Negocios,U12345678,2025-09-21,200,in,Proyecto freelance,planned
+ACC_022,Mantenimiento,V23456789,2025-09-22,120,out,Reparación casa,planned
+ACC_023,Ropa y Calzado,W34567890,2025-09-23,90,out,Zapatos,planned
+ACC_024,Suscripciones,X45678901,2025-09-24,20,out,Netflix,planned
+ACC_025,Diversión,Y56789012,2025-09-25,60,out,Concierto,planned
+ACC_026,Comida,Z67890123,2025-09-26,45,out,Supermercado,planned
+ACC_027,Transporte,AA78901234,2025-09-27,30,out,Metro,planned
+ACC_028,Salud,AB89012345,2025-09-28,100,out,Consulta médica,planned
+ACC_029,Alquiler,AC90123456,2025-09-29,900,out,Piso,planned
+ACC_030,Sueldo,AD01234567,2025-09-30,2700,in,Salario mensual,planned

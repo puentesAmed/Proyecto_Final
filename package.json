@@ -1,0 +1,12 @@
+{
+"name": "awprevision_tesoreria",
+"private": true,
+"workspaces": ["frontend","backend"],
+"scripts": {
+"dev": "concurrently -n api,web -c green,blue \"npm:dev -w backend\" \"npm:dev -w frontend\"",
+"build": "npm run build -w backend && npm run build -w frontend",
+"start:backend": "npm start -w backend",
+"seed": "npm run seed -w backend"
+},
+"devDependencies": { "concurrently": "^8.2.2" }
+}

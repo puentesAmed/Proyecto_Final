@@ -1,0 +1,134 @@
+:root {
+  --bg:#0f1220;
+  --surface: #171c2f;
+  --text: #e7e9f3;
+  --muted: #a7acc2;
+  --primary: #3b82f6;
+  --danger: #ef4;
+
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*{
+  box-sizing: border-box;
+
+}
+
+html, body, #root{
+  height: 100%;
+}
+
+body{
+  margin: 0;
+  /*background: var(--bg);*/
+  color: var(--text);
+  font-family: sytsem-ui, Roboto, Arial, sans-serif;
+}
+
+.header-container{
+  width: 100%;
+  margin: 0;
+  padding: 5px 5px 30px 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+}
+
+.nav{
+  display: flex;
+  gap: 1rem;
+  align-items: left;
+  justify-content: space-between;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: end;
+  padding: 2px;
+}
+.card{
+  /*background: var(--surface);*/
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.btn{
+  padding: 10px 14px;
+  border: 0.8px solid;
+  border-radius: 10px;
+  background: white;
+  /*background: var(--primary);
+  color: var(--bg);*/
+}
+
+dr
+.btn:hover{
+  background: var(--danger);
+}
+
+.input{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--muted);
+  /*background: var(--surface);*/
+  color: var(--text);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.page-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.upload-card input {
+  margin-bottom: 1rem;
+}
+
+.scenario-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #2c3149;
+}
+
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+
+/* FullCalendar: mostrar títulos completos dentro del día */
+.fc-event, .fc-event-title {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  line-height: 1.2;
+  font-size: 0.9rem;
+}
+
+
