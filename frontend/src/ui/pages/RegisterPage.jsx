@@ -30,7 +30,6 @@ const schema = z
   .object({
     name: z.string().min(2, 'Ingresa tu nombre'),
     email: z.string().email('Formato de email no válido'),
-    inviteCode: z.string().min(6, 'Introduce tu código de invitación'),
     password: z.string().min(6, 'Mínimo 6 caracteres'),
     confirmPassword: z.string().min(6, 'Mínimo 6 caracteres'),
   })
@@ -120,18 +119,6 @@ export function RegisterPage() {
             <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
           </FormControl>
 
-          <FormControl isInvalid={!!errors.inviteCode}>
-            <FormLabel>Código de invitación</FormLabel>
-            <Input
-              type="text"
-              placeholder="Código facilitado por el administrador"
-              autoComplete="one-time-code"
-              textTransform="uppercase"
-              {...register('inviteCode')}
-            />
-            <FormErrorMessage>{errors.inviteCode?.message}</FormErrorMessage>
-          </FormControl>
-
           <FormControl isInvalid={!!errors.password}>
             <FormLabel>Contraseña</FormLabel>
             <InputGroup>
@@ -193,7 +180,7 @@ export function RegisterPage() {
           </Button>
 
           <Text textAlign="center" fontSize="sm">
-            El administrador debe autorizar tu email y facilitarte un código válido.
+            Completa tus datos para crear tu cuenta y comenzar a usar la aplicación.
           </Text>
 
           <Text textAlign="center" fontSize="sm">

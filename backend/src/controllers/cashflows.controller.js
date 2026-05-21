@@ -24,7 +24,7 @@ const asCategoryId = async (val) => {
 export const list = async (req, res) => {
   try {
     const { from, to, account, type, category, counterparty, status } = req.query;
-    const q = {};
+    const q = { user: req.user.sub };
     if (from || to) {
       q.date = {};
       if (from) q.date.$gte = new Date(from);
@@ -108,7 +108,7 @@ export const createCashflow = async (req, res) => {
 
     const normalizedAmount = normalizeAmountByType(amount, type);
 
-    const doc = await Cashflow.create({ ...rest, date, account, amount: normalizedAmount, type, category: categoryId });
+    const doc = await Cashflow.create({ ...rest, user: req.user.sub, date, account, amount: normalizedAmount, type, category: categoryId });
     const populated = await doc.populate('account counterparty category');
     res.status(201).json(populated);
   } catch (e) {
@@ -136,7 +136,7 @@ export const updateCashflow = async (req, res) => {
     }
 
     if (hasAmount || hasType) {
-      const existing = await Cashflow.findById(id, { amount: 1, type: 1 }).lean();
+      const existing = await Cashflow.findOne({ _id: id, user: req.user.sub }, { amount: 1, type: 1 }).lean();
       if (!existing) return res.status(404).json({ error: 'not_found' });
 
       const normalizedType = hasType ? update.type : existing.type;
@@ -145,7 +145,7 @@ export const updateCashflow = async (req, res) => {
       update.type = normalizedType;
     }
 
-    const updated = await Cashflow.findByIdAndUpdate(id, update, { new: true })
+    const updated = await Cashflow.findOneAndUpdate({ _id: id, user: req.user.sub }, update, { new: true })
       .populate('account counterparty category');
 
     if (!updated) return res.status(404).json({ error: 'not_found' });
@@ -161,7 +161,7 @@ export const removeCashflow = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isId(id)) return res.status(400).json({ error: 'INVALID_ID' });
-    const deleted = await Cashflow.findByIdAndDelete(id);
+    const deleted = await Cashflow.findOneAndDelete({ _id: id, user: req.user.sub });
     if (!deleted) return res.status(404).json({ error: 'not_found' });
     res.status(204).end();
   } catch (e) {
@@ -171,7 +171,7 @@ export const removeCashflow = async (req, res) => {
 
 export const clearAll = async (_req, res) => {
   try {
-    const result = await Cashflow.deleteMany({});
+    const result = await Cashflow.deleteMany({ user: req.user.sub });
     res.json({ ok: true, deleted: result.deletedCount });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -214,7 +214,7 @@ export const calendar = async (req, res) => {
     const { start, end, account } = req.query;
 
     // Filtros seguros por fecha (FullCalendar manda YYYY-MM-DD)
-    const q = {};
+    const q = { user: req.user.sub };
     if (start || end) {
       q.date = {};
       if (start) q.date.$gte = toUTCStart(start);
