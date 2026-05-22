@@ -1,308 +1,703 @@
 # Previsión de Tesorería — Proyecto Final Fullstack
 
-Aplicación fullstack para gestionar movimientos financieros (ingresos y gastos), visualizar KPIs y reportes, y mantener persistencia real en base de datos con autenticación JWT.
+Aplicación fullstack para gestionar previsiones de tesorería, cuentas, ingresos, gastos, categorías, contrapartes, calendario financiero, reportes y escenarios. El proyecto está dividido en un frontend React y una API REST en Node.js/Express conectada a MongoDB.
+
+Este README está pensado como documentación principal del proyecto completo.
 
 ---
 
-## 1) Objetivo del proyecto
+## Índice
 
-Este proyecto fue construido como entrega final fullstack, priorizando:
-
-- Flujo real de usuario (registro, login, logout y rutas protegidas).
-- Persistencia en base de datos (sin depender de `localStorage` para datos de negocio).
-- Arquitectura frontend + backend desacoplada vía API REST.
-- Operaciones CRUD sobre movimientos (`cashflows`) con validaciones.
-- Base de código mantenible, clara y defendible en exposición académica.
-
----
-
-## 2) Arquitectura general
-
-### Frontend (`/frontend`)
-- **Stack:** React + Vite + Chakra UI + React Router + Zustand.
-- **Responsabilidad:** interfaz de usuario, navegación, formularios, consumo de API, estado de sesión (token/usuario) y notificaciones.
-
-### Backend (`/backend`)
-- **Stack:** Node.js + Express + Mongoose.
-- **Responsabilidad:** autenticación, autorización, validación, lógica de negocio, endpoints REST y acceso a MongoDB.
-
-### Base de datos
-- **Motor:** MongoDB.
-- **Persistencia principal:** usuarios, cuentas, categorías, contrapartes y cashflows.
+- [Objetivo](#objetivo)
+- [Arquitectura](#arquitectura)
+- [Tecnologías](#tecnologías)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Modelo funcional](#modelo-funcional)
+- [Requisitos](#requisitos)
+- [Variables de entorno](#variables-de-entorno)
+- [Instalación](#instalación)
+- [Ejecución en desarrollo](#ejecución-en-desarrollo)
+- [Seed de datos](#seed-de-datos)
+- [Autenticación](#autenticación)
+- [API principal](#api-principal)
+- [Frontend](#frontend)
+- [Backend](#backend)
+- [Comprobaciones manuales](#comprobaciones-manuales)
+- [Build y despliegue](#build-y-despliegue)
+- [Solución de problemas](#solución-de-problemas)
+- [Mejoras futuras](#mejoras-futuras)
 
 ---
 
-## 3) Estructura de carpetas
+## Objetivo
+
+El objetivo del proyecto es construir una aplicación fullstack de previsión de tesorería que permita:
+
+- Registrar e iniciar sesión con usuarios reales.
+- Proteger rutas mediante token JWT.
+- Consultar cuentas de tesorería.
+- Crear, listar, editar y eliminar movimientos financieros.
+- Diferenciar ingresos y gastos.
+- Asociar movimientos a cuentas, categorías y contrapartes.
+- Visualizar vencimientos en calendario.
+- Consultar totales, reportes y escenarios.
+- Mantener datos persistentes en MongoDB.
+
+La aplicación no depende de datos simulados en `localStorage` para la información principal. El frontend consume una API REST y el backend persiste los datos en base de datos.
+
+---
+
+## Arquitectura
 
 ```text
-.
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   ├── hooks/
-│   │   ├── lib/
-│   │   ├── state/
-│   │   ├── ui/
-│   │   └── main.jsx
-│   ├── public/
-│   ├── index.html
-│   └── package.json
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── app.js
-│   │   └── index.js
-│   ├── scripts/
-│   ├── data/
-│   └── package.json
-├── .env.example
-├── package.json
-└── README.md
+Frontend React/Vite
+        │
+        │ HTTP + JWT Bearer
+        ▼
+Backend Node.js + Express
+        │
+        │ Mongoose
+        ▼
+MongoDB / MongoDB Atlas
 ```
 
+### Frontend
+
+Responsable de:
+
+- Interfaz de usuario.
+- Formularios.
+- Validaciones básicas de entrada.
+- Navegación y rutas protegidas.
+- Estado de sesión.
+- Consumo de API mediante Axios.
+- Notificaciones de usuario.
+- Visualización de calendario, KPIs y reportes.
+
+### Backend
+
+Responsable de:
+
+- Autenticación y autorización.
+- Validaciones de seguridad.
+- Endpoints REST.
+- Gestión de usuarios, cuentas, categorías, contrapartes y cashflows.
+- Conexión con MongoDB mediante Mongoose.
+- Seed de datos iniciales.
+- CORS, Helmet, rate limit y middleware de seguridad.
+
+### Base de datos
+
+MongoDB almacena:
+
+- `users`
+- `accounts`
+- `categories`
+- `counterparties`
+- `cashflows`
+- `scenarios`
+- otros documentos auxiliares del proyecto
+
 ---
 
-## 4) Funcionalidades principales
-
-- Registro de usuario con email, nombre y contraseña.
-- Inicio/cierre de sesión con token JWT.
-- Protección de rutas frontend y endpoints backend.
-- Gestión de movimientos (`cashflows`) con creación, edición, listado y borrado.
-- Dashboard con indicadores y visualizaciones.
-- Módulos de cuentas, categorías, calendario e importación (según rol).
-- Notificaciones en interfaz sin `alert()` del navegador.
-
----
-
-## 5) Tecnologías usadas
+## Tecnologías
 
 ### Frontend
-- React 19
+
+- React
 - Vite
 - Chakra UI
 - React Router
-- React Hook Form + Zod
+- React Hook Form
+- Zod
 - Zustand
 - Axios
-- Recharts / FullCalendar (visualizaciones)
+- FullCalendar
+- Recharts
 
 ### Backend
+
 - Node.js
 - Express
 - Mongoose
-- JWT (`jsonwebtoken`)
+- MongoDB / MongoDB Atlas
+- JSON Web Token
 - Bcrypt
 - Helmet
 - CORS
 - Morgan
 - Express Rate Limit
-- Multer (importaciones)
+- csv-parse
 
 ---
 
-## 6) Requisitos previos
+## Estructura del proyecto
 
-- Node.js **20.x**
-- npm **9+**
-- MongoDB local o remoto
-
-> Recomendado: usar la misma versión de Node en frontend/backend para evitar diferencias de build.
+```text
+.
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   │   └── api.js
+│   │   ├── state/
+│   │   ├── styles/
+│   │   └── ui/
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+│
+├── backend/
+│   ├── data/
+│   │   ├── accounts.csv
+│   │   ├── cashflows.csv
+│   │   ├── categories.csv
+│   │   └── counterparties.csv
+│   ├── scripts/
+│   │   └── seed.js
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── env.js
+│   │   │   └── mongo.js
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   │   ├── Account.js
+│   │   │   ├── Cashflow.js
+│   │   │   ├── Category.js
+│   │   │   ├── Counterparty.js
+│   │   │   ├── Scenario.js
+│   │   │   └── User.js
+│   │   ├── routes/
+│   │   ├── app.js
+│   │   └── index.js
+│   └── package.json
+│
+├── package.json
+├── .env.example
+└── README.md
+```
 
 ---
 
-## 7) Variables de entorno
+## Modelo funcional
 
-Hay un archivo base en `.env.example`.
+### User
 
-### Backend (`backend/.env`)
+Representa al usuario que accede a la aplicación.
+
+Campos principales:
+
+- `name`
+- `email`
+- `passwordHash`
+- `role`
+
+El usuario demo del seed es:
+
+```text
+Email: admin@demo.com
+Contraseña: Admin123!
+Rol: admin
+```
+
+### Account
+
+Representa una cuenta real de tesorería sobre la que se asocian ingresos y gastos.
+
+Campos principales:
+
+- `alias`
+- `bank`
+- `nummber`
+- `color`
+- `currency`
+- `initialBalance`
+- `currentBalance`
+
+Nota: el campo `nummber` se mantiene con ese nombre por compatibilidad con el modelo actual.
+
+### Cashflow
+
+Representa un ingreso o gasto.
+
+Campos principales:
+
+- `user`
+- `date`
+- `account`
+- `counterparty`
+- `amount`
+- `type`
+- `category`
+- `concept`
+- `status`
+
+Valores admitidos:
+
+```text
+type: in | out
+status: pending | paid | cancelled
+```
+
+Los cashflows pertenecen a un usuario y se asocian a una cuenta mediante referencia a `Account`.
+
+### Category
+
+Clasifica el movimiento financiero.
+
+Ejemplos:
+
+- Sueldo
+- Alquiler
+- Compras
+- Transporte
+- Servicios
+- Impuestos
+
+### Counterparty
+
+Representa la persona, empresa o entidad asociada al movimiento.
+
+---
+
+## Requisitos
+
+- Node.js 20.x recomendado
+- npm 9 o superior
+- MongoDB local o MongoDB Atlas
+- Navegador moderno
+
+---
+
+## Variables de entorno
+
+### Backend
+
+Crear archivo:
+
+```text
+backend/.env
+```
+
+Ejemplo:
 
 ```env
 PORT=3000
-MONGODB_URI=
-JWT_SECRET=replace_with_a_long_random_secret
+MONGO_URI=
+JWT_SECRET=cambia_este_secret_por_un_valor_largo
+JWT_EXPIRES_IN=7d
 CORS_ORIGINS=http://localhost:5173
 ```
 
-### Frontend (`frontend/.env.local`)
+En MongoDB Atlas, `MONGO_URI` debe contener la cadena de conexión real del cluster.
+
+### Frontend
+
+Crear archivo:
+
+```text
+frontend/.env
+```
+
+Ejemplo local:
 
 ```env
 VITE_API_URL=http://localhost:3000/api
 ```
 
-### Notas importantes
-- No subir `.env` reales al repositorio.
-- `JWT_SECRET` debe ser largo y aleatorio en entornos productivos.
-- `CORS_ORIGINS` debe incluir los dominios permitidos del frontend.
+Ejemplo producción:
+
+```env
+VITE_API_URL=https://tu-backend-produccion.com/api
+```
 
 ---
 
-## 8) Instalación
+## Instalación
 
-Desde la raíz del proyecto:
+Desde la raíz:
 
 ```bash
 npm install
 ```
 
-Crear archivos de entorno:
+Si el proyecto no está configurado con workspaces, instalar cada parte por separado:
 
-1. `backend/.env` a partir de `.env.example`.
-2. `frontend/.env` con `VITE_API_URL`.
+```bash
+cd backend
+npm install
 
-Levantar MongoDB y comprobar conexión.
+cd ../frontend
+npm install
+```
 
 ---
 
-## 9) Ejecución en desarrollo
+## Ejecución en desarrollo
 
-### Levantar frontend + backend
+### Opción con workspaces desde la raíz
 
 ```bash
 npm run dev
 ```
 
-### Solo backend
-
-```bash
-npm run dev -w backend
-```
-
-### Solo frontend
-
-```bash
-npm run dev -w frontend
-```
-
----
-
-## 10) Scripts disponibles
-
-### Raíz
-- `npm run dev` → ejecuta backend y frontend en paralelo.
-- `npm run build` → ejecuta build de workspaces (nota: backend no define `build` actualmente).
-- `npm run seed` → ejecuta seed del backend.
-
 ### Backend
-- `npm run dev -w backend` → nodemon.
-- `npm run start -w backend` → arranque normal.
-- `npm run seed -w backend` → carga datos semilla.
-- `npm run seed:categories -w backend`
-- `npm run seed:users -w backend`
-- `npm run fix:cashflow-signs -w backend`
+
+```bash
+cd backend
+npm run dev
+```
+
+El backend queda disponible normalmente en:
+
+```text
+http://localhost:3000
+```
+
+Health check:
+
+```text
+http://localhost:3000/health
+```
 
 ### Frontend
-- `npm run dev -w frontend`
-- `npm run build -w frontend`
-- `npm run preview -w frontend`
-- `npm run lint -w frontend`
-
----
-
-## 11) Autenticación y autorización
-
-### Flujo de autenticación
-1. Usuario se registra (`/api/auth/register`) con `name`, `email`, `password`.
-2. Backend hashea contraseña con bcrypt.
-3. Backend genera JWT y responde con `token + user`.
-4. Frontend persiste sesión (estado auth) y adjunta token Bearer en peticiones.
-
-### Protección
-- Backend valida JWT en middleware `requireAuth`.
-- Endpoints sensibles usan `requireAdmin`.
-- Frontend redirige a login cuando falta sesión/token.
-
-### Aislamiento de datos
-- Los cashflows quedan asociados al usuario autenticado.
-- Listados y mutaciones trabajan sobre el `user` del token para evitar mezcla de datos entre usuarios.
-
----
-
-## 12) API (resumen de endpoints)
-
-> Prefijo base: `/api`
-
-### Auth
-- `POST /auth/register`
-- `POST /auth/login`
-
-### Cashflows
-- `GET /cashflows`
-- `POST /cashflows`
-- `PUT /cashflows/:id`
-- `DELETE /cashflows/:id`
-- `PATCH /cashflows/:id/status`
-- `GET /cashflows/calendar`
-- `GET /cashflows/upcoming`
-- `GET /cashflows/monthly`
-
-### Otros módulos
-- `/accounts`
-- `/categories`
-- `/counterparties`
-- `/reports`
-- `/scenarios`
-- `/registration-invites` (módulo legacy administrativo)
-
----
-
-## 13) Datos de ejemplo (seed)
-
-Para cargar datos iniciales:
 
 ```bash
-npm run seed
+cd frontend
+npm run dev
 ```
 
-Esto ejecuta scripts del backend que crean/actualizan información de referencia y datos de prueba.
+El frontend queda disponible normalmente en:
+
+```text
+http://localhost:5173
+```
 
 ---
 
-## 14) Calidad, seguridad y buenas prácticas
+## Autenticación
 
-- Contraseñas no se guardan en texto plano.
-- Uso de JWT con expiración.
-- CORS y Helmet habilitados.
-- Rate limit básico para endurecer API.
-- Manejo de errores con respuestas JSON.
-- Código organizado por rutas/controladores/modelos.
+La autenticación funciona mediante JWT.
 
----
+Rutas principales:
 
-## 15) Limitaciones actuales conocidas
+```text
+POST /api/auth/register
+POST /api/auth/login
+```
 
-- El workspace backend no tiene `npm run build` propio; por eso `npm run build` en raíz puede fallar.
-- Existen módulos legacy (`registration-invites`) que hoy no son requisito para el registro de usuario final.
-- Sería recomendable añadir una suite mínima de tests de integración para auth y cashflows.
+Flujo:
 
----
-
-## 16) Mejoras futuras recomendadas
-
-- Agregar tests automáticos (API + UI).
-- Añadir refresh token / estrategia de renovación de sesión.
-- Añadir paginación y búsqueda avanzada en cashflows.
-- Incorporar auditoría de acciones críticas por usuario/rol.
-- Completar documentación OpenAPI/Swagger.
+1. El usuario envía email y contraseña.
+2. El backend valida credenciales.
+3. La contraseña se compara con bcrypt.
+4. El backend devuelve `user` y `token`.
+5. El frontend guarda la sesión.
+6. Axios envía el token en `Authorization: Bearer <token>`.
 
 ---
 
-## 17) Guía rápida para defensa académica
+## API principal
 
-Si necesitas exponer el proyecto:
+Prefijo base:
 
-1. Explicar arquitectura fullstack y separación de responsabilidades.
-2. Mostrar registro/login real contra backend.
-3. Demostrar ruta protegida sin token.
-4. Crear/editar/eliminar un cashflow y refrescar para probar persistencia.
-5. Mostrar que un usuario no ve datos de otro (aislamiento por usuario).
-6. Enseñar `.env.example` y prácticas de seguridad básicas.
+```text
+/api
+```
+
+### Auth
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+```
+
+### Accounts
+
+```text
+GET    /api/accounts
+POST   /api/accounts
+PATCH  /api/accounts/:id
+DELETE /api/accounts/:id
+```
+
+### Cashflows
+
+```text
+GET    /api/cashflows
+POST   /api/cashflows
+PATCH  /api/cashflows/:id
+PATCH  /api/cashflows/:id/status
+DELETE /api/cashflows/:id
+```
+
+### Categories
+
+```text
+GET    /api/categories
+POST   /api/categories
+PATCH  /api/categories/:id
+DELETE /api/categories/:id
+```
+
+### Counterparties
+
+```text
+GET    /api/counterparties
+POST   /api/counterparties
+PATCH  /api/counterparties/:id
+DELETE /api/counterparties/:id
+```
+
+### Reports
+
+```text
+GET /api/reports/summary
+GET /api/reports/by-category
+GET /api/reports/by-account
+```
+
+### Scenarios
+
+```text
+GET    /api/scenarios
+POST   /api/scenarios
+PATCH  /api/scenarios/:id
+DELETE /api/scenarios/:id
+```
 
 ---
 
-## 18) Licencia y uso
+## Frontend
 
-Proyecto de uso académico para entrega final fullstack.
+El frontend consume la API mediante el cliente centralizado:
+
+```text
+frontend/src/lib/api.js
+```
+
+Debe usar:
+
+```js
+baseURL: import.meta.env.VITE_API_URL
+```
+
+En local, la URL correcta es:
+
+```text
+http://localhost:3000/api
+```
+
+Si el registro intenta llamar a `http://localhost:5173/auth/register`, significa que `VITE_API_URL` no se está leyendo o no se está usando el cliente API centralizado.
+
+---
+
+## Backend
+
+El backend monta las rutas en `src/app.js`.
+
+Rutas principales:
+
+```js
+app.use('/api/auth', authRoutes)
+app.use('/api/accounts', accountRoutes)
+app.use('/api/counterparties', counterpartiesRoutes)
+app.use('/api/cashflows', cashflowRoutes)
+app.use('/api/reports', reportsRoutes)
+app.use('/api/scenarios', scenariosRoutes)
+app.use('/api/categories', categoriesRoutes)
+```
+
+La conexión con MongoDB está centralizada en:
+
+```text
+backend/src/config/mongo.js
+```
+
+La configuración de variables se gestiona en:
+
+```text
+backend/src/config/env.js
+```
+
+---
+
+## Comprobaciones manuales
+
+Antes de entregar:
+
+1. Arrancar backend.
+2. Arrancar frontend.
+3. Confirmar conexión a MongoDB.
+4. Ejecutar seed.
+5. Entrar con `admin@demo.com` y `Admin123!`.
+6. Ver cuentas cargadas.
+7. Ver cashflows asociados a cuentas.
+8. Crear un cashflow desde la interfaz.
+9. Editar estado de un cashflow.
+10. Filtrar por cuenta/categoría/estado.
+11. Revisar calendario en escritorio.
+12. Revisar calendario en móvil.
+13. Refrescar la página y confirmar persistencia.
+14. Cerrar sesión e intentar acceder a una ruta protegida.
+
+---
+
+## Build y despliegue
+
+### Frontend
+
+```bash
+cd frontend
+npm run build
+```
+
+El resultado se genera en `frontend/dist`.
+
+Para Netlify, configurar:
+
+```text
+Build command: npm run build
+Publish directory: dist
+```
+
+Variable de entorno en Netlify:
+
+```env
+VITE_API_URL=https://tu-backend-produccion.com/api
+```
+
+### Backend
+
+```bash
+cd backend
+npm start
+```
+
+Variables necesarias en producción:
+
+```env
+PORT=3000
+MONGO_URI=mongodb+srv://...
+JWT_SECRET=valor_largo_y_seguro
+JWT_EXPIRES_IN=7d
+CORS_ORIGINS=https://tu-frontend-produccion.com
+```
+
+---
+
+## Solución de problemas
+
+### Error CORS
+
+Síntoma:
+
+```text
+Not allowed by CORS
+```
+
+Solución:
+
+```env
+CORS_ORIGINS=http://localhost:5173
+```
+
+En producción, incluir el dominio real del frontend.
+
+### Error de registro a localhost:5173
+
+Síntoma:
+
+```text
+POST http://localhost:5173/auth/register 404
+```
+
+Solución:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+El archivo debe estar en:
+
+```text
+frontend/.env.local
+```
+
+Después hay que reiniciar Vite.
+
+### Error de MongoDB Atlas con SRV
+
+Si aparece un error tipo `querySrv ECONNREFUSED`, usar una cadena estándar `mongodb://...` con los hosts del cluster o revisar DNS/red.
+
+### Cashflows sin cuenta
+
+Comprobar:
+
+1. `cashflows.csv` usa `accountAlias`.
+2. `accounts.csv` tiene un `alias` coincidente.
+3. `Cashflow.account` tiene `ref: 'Account'`.
+4. El endpoint hace `populate('account')`.
+5. El frontend muestra `account.alias`, `account.bank` o `account.nummber`.
+
+### Status inválido
+
+El modelo actual acepta:
+
+```text
+pending
+paid
+cancelled
+```
+
+No usar:
+
+```text
+planned
+unpaid
+```
+
+si no están definidos en el enum del modelo.
+
+---
+
+## Calidad y seguridad
+
+- Contraseñas guardadas con hash bcrypt.
+- JWT para proteger endpoints.
+- Middleware de autenticación.
+- CORS restringido por origen.
+- Helmet activo.
+- Rate limit básico.
+- Variables sensibles fuera del repositorio.
+- Notificaciones propias en frontend, sin `alert()`.
+
+---
+
+## Mejoras futuras
+
+- Añadir tests de integración para auth y cashflows.
+- Añadir Swagger/OpenAPI.
+- Añadir paginación en listados largos.
+- Añadir auditoría de cambios por usuario.
+- Añadir refresh tokens.
+- Mejorar importación masiva de movimientos.
+- Añadir dashboard financiero más avanzado.
+
+---
+
+## Defensa académica
+
+Puntos clave para explicar el proyecto:
+
+1. Es una arquitectura fullstack real.
+2. El frontend y backend están separados.
+3. La autenticación no está simulada.
+4. Los datos persisten en MongoDB.
+5. Los cashflows se asocian a cuentas reales.
+6. El calendario y los reportes consumen datos de la API.
+7. Las rutas protegidas requieren token JWT.
+8. El proyecto usa variables de entorno y medidas básicas de seguridad.
