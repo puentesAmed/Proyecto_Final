@@ -1,31 +1,101 @@
 accountAlias,categoryName,counterpartyNif,date,amount,type,concept,status
-ACC_001,Sueldo,A12345678,2025-09-01,2500,in,Salario mensual,planned
-ACC_002,Alquiler,B23456789,2025-09-02,800,out,Alquiler piso,planned
-ACC_003,Compras,C34567890,2025-09-03,120,out,Supermercado,planned
-ACC_004,Transporte,D45678901,2025-09-04,50,out,Taxi,planned
-ACC_005,Entretenimiento,E56789012,2025-09-05,70,out,Cine,planned
-ACC_006,Servicios,F67890123,2025-09-06,90,out,Luz y agua,planned
-ACC_007,Salud,G78901234,2025-09-07,200,out,Medicamentos,planned
-ACC_008,Educación,H89012345,2025-09-08,500,out,Curso online,planned
-ACC_009,Inversiones,I90123456,2025-09-09,1000,in,Dividendos,planned
-ACC_010,Otros,J01234567,2025-09-10,30,out,Gastos varios,planned
-ACC_011,Comida,K12345678,2025-09-11,60,out,Restaurante,planned
-ACC_012,Seguros,L23456789,2025-09-12,150,out,Seguro coche,planned
-ACC_013,Tecnología,M34567890,2025-09-13,400,out,Ordenador,planned
-ACC_014,Viajes,N45678901,2025-09-14,1200,out,Vuelo,planned
-ACC_015,Hogar,O56789012,2025-09-15,300,out,Muebles,planned
-ACC_016,Mascotas,P67890123,2025-09-16,80,out,Alimentos perro,planned
-ACC_017,Regalos,Q78901234,2025-09-17,100,out,Regalo cumpleaños,planned
-ACC_018,Deportes,R89012345,2025-09-18,50,out,Equipo deportivo,planned
-ACC_019,Donaciones,S90123456,2025-09-19,40,out,ONG,planned
-ACC_020,Impuestos,T01234567,2025-09-20,300,out,IRPF,planned
-ACC_021,Negocios,U12345678,2025-09-21,200,in,Proyecto freelance,planned
-ACC_022,Mantenimiento,V23456789,2025-09-22,120,out,Reparación casa,planned
-ACC_023,Ropa y Calzado,W34567890,2025-09-23,90,out,Zapatos,planned
-ACC_024,Suscripciones,X45678901,2025-09-24,20,out,Netflix,planned
-ACC_025,Diversión,Y56789012,2025-09-25,60,out,Concierto,planned
-ACC_026,Comida,Z67890123,2025-09-26,45,out,Supermercado,planned
-ACC_027,Transporte,AA78901234,2025-09-27,30,out,Metro,planned
-ACC_028,Salud,AB89012345,2025-09-28,100,out,Consulta médica,planned
-ACC_029,Alquiler,AC90123456,2025-09-29,900,out,Piso,planned
-ACC_030,Sueldo,AD01234567,2025-09-30,2700,in,Salario mensual,planned
+ACC_001,Sueldo,A12345678,2026-06-01,2500,in,Salario mensual junio,pending
+ACC_002,Alquiler,B23456789,2026-06-02,850,out,Alquiler oficina junio,pending
+ACC_003,Compras,C34567890,2026-06-03,135.75,out,Compra material oficina,pending
+ACC_004,Transporte,D45678901,2026-06-04,42.5,out,Transporte urbano,pending
+ACC_005,Entretenimiento,E56789012,2026-06-05,68,out,Actividad equipo,pending
+ACC_006,Servicios,F67890123,2026-06-06,180.4,out,Factura electricidad,pending
+ACC_007,Salud,G78901234,2026-06-07,95,out,Seguro médico empresa,pending
+ACC_008,Educación,H89012345,2026-06-08,320,out,Formación profesional,pending
+ACC_009,Inversiones,I90123456,2026-06-09,750,in,Rendimiento inversión,pending
+ACC_010,Otros,J01234567,2026-06-10,55,out,Gastos administrativos,pending
+ACC_011,Comida,K12345678,2026-06-11,120,out,Comida con cliente,pending
+ACC_012,Seguros,L23456789,2026-06-12,210,out,Seguro responsabilidad civil,pending
+ACC_013,Tecnología,M34567890,2026-06-13,640,out,Renovación equipos,pending
+ACC_014,Viajes,N45678901,2026-06-14,480,out,Desplazamiento comercial,pending
+ACC_015,Hogar,O56789012,2026-06-15,160,out,Mantenimiento instalaciones,pending
+ACC_016,Mascotas,P67890123,2026-06-16,45,out,Gasto menor oficina,pending
+ACC_017,Regalos,Q78901234,2026-06-17,90,out,Detalle corporativo,pending
+ACC_018,Deportes,R89012345,2026-06-18,75,out,Actividad bienestar equipo,pending
+ACC_019,Donaciones,S90123456,2026-06-19,100,out,Donación corporativa,pending
+ACC_020,Impuestos,T01234567,2026-06-20,680,out,Pago trimestral impuestos,pending
+ACC_021,Negocios,U12345678,2026-06-21,1450,in,Cobro proyecto freelance,pending
+ACC_022,Mantenimiento,V23456789,2026-06-22,260,out,Reparación equipos,pending
+ACC_023,Ropa y Calzado,W34567890,2026-06-23,130,out,Uniformes personal,pending
+ACC_024,Suscripciones,X45678901,2026-06-24,39.99,out,Suscripción software,pending
+ACC_025,Diversión,Y56789012,2026-06-25,110,out,Evento interno,pending
+ACC_026,Comida,Z67890123,2026-06-26,95.4,out,Catering reunión,pending
+ACC_027,Transporte,AA78901234,2026-06-27,60,out,Taxi aeropuerto,pending
+ACC_028,Salud,AB89012345,2026-06-28,140,out,Revisión médica,pending
+ACC_029,Alquiler,AC90123456,2026-06-29,900,out,Alquiler almacén,pending
+ACC_030,Sueldo,AD01234567,2026-06-30,2750,in,Nómina dirección,pending
+ACC_001,Sueldo,A12345678,2026-07-01,2500,in,Salario mensual julio,pending
+ACC_002,Alquiler,B23456789,2026-07-02,850,out,Alquiler oficina julio,pending
+ACC_003,Compras,C34567890,2026-07-03,210,out,Compra suministros,pending
+ACC_004,Transporte,D45678901,2026-07-04,38.9,out,Transporte local,pending
+ACC_005,Entretenimiento,E56789012,2026-07-05,85,out,Actividad clientes,pending
+ACC_006,Servicios,F67890123,2026-07-06,165.3,out,Factura agua y luz,pending
+ACC_007,Salud,G78901234,2026-07-07,95,out,Seguro médico empresa,pending
+ACC_008,Educación,H89012345,2026-07-08,450,out,Curso gestión financiera,pending
+ACC_009,Inversiones,I90123456,2026-07-09,620,in,Intereses inversión,pending
+ACC_010,Otros,J01234567,2026-07-10,72,out,Gastos varios oficina,pending
+ACC_011,Comida,K12345678,2026-07-11,135,out,Comida proveedores,pending
+ACC_012,Seguros,L23456789,2026-07-12,210,out,Seguro responsabilidad civil,pending
+ACC_013,Tecnología,M34567890,2026-07-13,89.99,out,Licencia software,pending
+ACC_014,Viajes,N45678901,2026-07-14,720,out,Viaje reunión comercial,pending
+ACC_015,Hogar,O56789012,2026-07-15,190,out,Material limpieza,pending
+ACC_016,Mascotas,P67890123,2026-07-16,50,out,Gasto menor mantenimiento,pending
+ACC_017,Regalos,Q78901234,2026-07-17,120,out,Obsequio cliente,pending
+ACC_018,Deportes,R89012345,2026-07-18,65,out,Actividad equipo,pending
+ACC_019,Donaciones,S90123456,2026-07-19,100,out,Aportación social,pending
+ACC_020,Impuestos,T01234567,2026-07-20,420,out,Retenciones fiscales,pending
+ACC_021,Negocios,U12345678,2026-07-21,2200,in,Cobro contrato consultoría,pending
+ACC_022,Mantenimiento,V23456789,2026-07-22,310,out,Mantenimiento preventivo,pending
+ACC_023,Ropa y Calzado,W34567890,2026-07-23,95,out,Reposición uniformes,pending
+ACC_024,Suscripciones,X45678901,2026-07-24,49.99,out,Suscripción CRM,pending
+ACC_025,Diversión,Y56789012,2026-07-25,150,out,Evento networking,pending
+ACC_026,Comida,Z67890123,2026-07-26,88.2,out,Café y reuniones,pending
+ACC_027,Transporte,AA78901234,2026-07-27,74,out,Combustible,pending
+ACC_028,Salud,AB89012345,2026-07-28,160,out,Prevención laboral,pending
+ACC_029,Alquiler,AC90123456,2026-07-29,900,out,Alquiler almacén julio,pending
+ACC_030,Sueldo,AD01234567,2026-07-30,2750,in,Nómina dirección julio,pending
+ACC_001,Sueldo,A12345678,2026-08-01,2500,in,Salario mensual agosto,pending
+ACC_002,Alquiler,B23456789,2026-08-02,850,out,Alquiler oficina agosto,pending
+ACC_003,Compras,C34567890,2026-08-03,145.6,out,Material papelería,pending
+ACC_004,Transporte,D45678901,2026-08-04,52,out,Transporte visitas,pending
+ACC_005,Entretenimiento,E56789012,2026-08-05,95,out,Actividad corporativa,pending
+ACC_006,Servicios,F67890123,2026-08-06,175.8,out,Servicios básicos,pending
+ACC_007,Salud,G78901234,2026-08-07,95,out,Seguro médico agosto,pending
+ACC_008,Educación,H89012345,2026-08-08,280,out,Taller productividad,pending
+ACC_009,Inversiones,I90123456,2026-08-09,810,in,Rentabilidad cartera,pending
+ACC_010,Otros,J01234567,2026-08-10,64,out,Gastos menores,pending
+ACC_011,Comida,K12345678,2026-08-11,115,out,Comida equipo,pending
+ACC_012,Seguros,L23456789,2026-08-12,210,out,Seguro empresa agosto,pending
+ACC_013,Tecnología,M34567890,2026-08-13,320,out,Periféricos oficina,pending
+ACC_014,Viajes,N45678901,2026-08-14,560,out,Viaje proveedor,pending
+ACC_015,Hogar,O56789012,2026-08-15,175,out,Acondicionamiento oficina,pending
+ACC_016,Mascotas,P67890123,2026-08-16,40,out,Gasto auxiliar,pending
+ACC_017,Regalos,Q78901234,2026-08-17,130,out,Regalo institucional,pending
+ACC_018,Deportes,R89012345,2026-08-18,70,out,Plan bienestar,pending
+ACC_019,Donaciones,S90123456,2026-08-19,100,out,Donación mensual,pending
+ACC_020,Impuestos,T01234567,2026-08-20,390,out,Tasas administrativas,pending
+ACC_021,Negocios,U12345678,2026-08-21,1850,in,Cobro servicio mensual,pending
+ACC_022,Mantenimiento,V23456789,2026-08-22,275,out,Revisión instalaciones,pending
+ACC_023,Ropa y Calzado,W34567890,2026-08-23,105,out,Equipamiento personal,pending
+ACC_024,Suscripciones,X45678901,2026-08-24,29.99,out,Suscripción almacenamiento,pending
+ACC_025,Diversión,Y56789012,2026-08-25,125,out,Encuentro profesional,pending
+ACC_026,Comida,Z67890123,2026-08-26,102,out,Comida comercial,pending
+ACC_027,Transporte,AA78901234,2026-08-27,58,out,Transporte equipo,pending
+ACC_028,Salud,AB89012345,2026-08-28,145,out,Chequeo prevención,pending
+ACC_029,Alquiler,AC90123456,2026-08-29,900,out,Alquiler almacén agosto,pending
+ACC_030,Sueldo,AD01234567,2026-08-30,2750,in,Nómina dirección agosto,pending
+ACC_001,Sueldo,A12345678,2026-09-01,2500,in,Salario mensual septiembre,pending
+ACC_002,Alquiler,B23456789,2026-09-02,850,out,Alquiler oficina septiembre,pending
+ACC_003,Compras,C34567890,2026-09-03,188.45,out,Reposición suministros,pending
+ACC_004,Transporte,D45678901,2026-09-04,47.3,out,Transporte reuniones,pending
+ACC_005,Entretenimiento,E56789012,2026-09-05,90,out,Actividad fidelización,pending
+ACC_006,Servicios,F67890123,2026-09-06,182.7,out,Servicios oficina,pending
+ACC_007,Salud,G78901234,2026-09-07,95,out,Seguro médico septiembre,pending
+ACC_008,Educación,H89012345,2026-09-08,360,out,Formación equipo,pending
+ACC_009,Inversiones,I90123456,2026-09-09,690,in,Dividendos septiembre,pending
+ACC_010,Otros,J01234567,2026-09-10,80,out,Gastos administrativos septiembre,pending
