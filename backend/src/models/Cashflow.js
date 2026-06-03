@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const S = new mongoose.Schema({
+  user:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   date:         { type: Date, required: true },
   account:      { type: mongoose.Schema.Types.ObjectId, ref: 'Account', required: false, default: null },
   counterparty: { type: mongoose.Schema.Types.ObjectId, ref: 'Counterparty', required: false, default: null },
@@ -23,5 +24,6 @@ S.index({ account: 1 });
 S.index({ counterparty: 1 });
 S.index({ category: 1 });
 S.index({ source: 1, externalId: 1 });
+S.index({ user: 1, date: 1 });
 
 export default mongoose.model('Cashflow', S);
