@@ -24,7 +24,7 @@ const asCategoryId = async (val) => {
 export const list = async (req, res) => {
   try {
     const { from, to, account, type, category, counterparty, status } = req.query;
-    const q = { user: req.user.sub };
+    const q = {};
     if (from || to) {
       q.date = {};
       if (from) q.date.$gte = new Date(from);
@@ -136,7 +136,7 @@ export const updateCashflow = async (req, res) => {
     }
 
     if (hasAmount || hasType) {
-      const existing = await Cashflow.findOne({ _id: id, user: req.user.sub }, { amount: 1, type: 1 }).lean();
+      const existing = await Cashflow.findOne({ _id: id }, { amount: 1, type: 1 }).lean();
       if (!existing) return res.status(404).json({ error: 'not_found' });
 
       const normalizedType = hasType ? update.type : existing.type;
@@ -145,7 +145,7 @@ export const updateCashflow = async (req, res) => {
       update.type = normalizedType;
     }
 
-    const updated = await Cashflow.findOneAndUpdate({ _id: id, user: req.user.sub }, update, { new: true })
+    const updated = await Cashflow.findOneAndUpdate({ _id: id }, update, { new: true })
       .populate('account counterparty category');
 
     if (!updated) return res.status(404).json({ error: 'not_found' });
@@ -161,7 +161,7 @@ export const removeCashflow = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isId(id)) return res.status(400).json({ error: 'INVALID_ID' });
-    const deleted = await Cashflow.findOneAndDelete({ _id: id, user: req.user.sub });
+    const deleted = await Cashflow.findOneAndDelete({ _id: id });
     if (!deleted) return res.status(404).json({ error: 'not_found' });
     res.status(204).end();
   } catch (e) {
@@ -171,7 +171,7 @@ export const removeCashflow = async (req, res) => {
 
 export const clearAll = async (_req, res) => {
   try {
-    const result = await Cashflow.deleteMany({ user: req.user.sub });
+    const result = await Cashflow.deleteMany({});
     res.json({ ok: true, deleted: result.deletedCount });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -214,7 +214,7 @@ export const calendar = async (req, res) => {
     const { start, end, account } = req.query;
 
     // Filtros seguros por fecha (FullCalendar manda YYYY-MM-DD)
-    const q = { user: req.user.sub };
+    const q = {};
     if (start || end) {
       q.date = {};
       if (start) q.date.$gte = toUTCStart(start);
@@ -336,6 +336,19 @@ const lc = s => norm(s).toLowerCase();
 const fromLocalDateToUTCNoon = (d) =>
   new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0, 0));
 
+const validLocalDate = (year, month, day) => {
+  const d = new Date(year, month - 1, day);
+  if (
+    d.getFullYear() !== year ||
+    d.getMonth() !== month - 1 ||
+    d.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return d;
+};
+
 //  YYYY-MM-DD desde un Date, tomando el Y/M/D LOCAL (el que ve el usuario)
 
 const parseDate = (v) => {
@@ -355,18 +368,25 @@ const parseDate = (v) => {
 
   // yyyy-mm-dd | yyyy/mm/dd
   let m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
-  if (m) return fromLocalDateToUTCNoon(new Date(+m[1], +m[2] - 1, +m[3]));
+  if (m) {
+    const d = validLocalDate(+m[1], +m[2], +m[3]);
+    return d ? fromLocalDateToUTCNoon(d) : null;
+  }
 
   // dd/mm/yyyy | dd-mm-yyyy | dd.mm.yyyy
   m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
-  if (m) return fromLocalDateToUTCNoon(new Date(+m[3], +m[2] - 1, +m[1]));
+  if (m) {
+    const d = validLocalDate(+m[3], +m[2], +m[1]);
+    return d ? fromLocalDateToUTCNoon(d) : null;
+  }
 
   // dd/mm/yy | dd-mm-yy
   m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2})$/);
   if (m) {
     const y2 = +m[3];
     const y = y2 >= 70 ? 1900 + y2 : 2000 + y2;
-    return fromLocalDateToUTCNoon(new Date(y, +m[2] - 1, +m[1]));
+    const d = validLocalDate(y, +m[2], +m[1]);
+    return d ? fromLocalDateToUTCNoon(d) : null;
   }
 
   return null;
@@ -384,37 +404,14 @@ const headerMap = (h) => {
   if (['date','fecha','fechavencimiento','fechavto','fvencimiento','fvto','vencimiento'].includes(k)) return 'date';
   if (['amount','importe','valor','importeoperacion','importevto'].includes(k)) return 'amount';
   if (['type','tipo'].includes(k)) return 'type';
-  if (['account','cuenta','accountalias','cuentaalias', 'banco'].includes(k)) return 'account';
-  if (['counterparty','proveedor','cliente','tercero','beneficiario','pagador'].includes(k)) return 'counterparty';
-  if (['category','categoria'].includes(k)) return 'category';
+  if (['account','cuenta','accountalias','cuentaalias', 'banco'].includes(k)) return 'accountAlias';
+  if (['counterpartynif','nif','cif','nifproveedor','nifcliente'].includes(k)) return 'counterpartyNif';
+  if (['counterparty','proveedor','cliente','tercero','beneficiario','pagador'].includes(k)) return 'counterpartyName';
+  if (['category','categoria','categoryname','categorianame','nombrecategoria'].includes(k)) return 'categoryName';
   if (['concept','concepto','descripcion','detalle'].includes(k)) return 'concept';
   if (['status','estado'].includes(k)) return 'status';
   return null;
 };
-
-const typeMap = (v) => {
-  const t = (v ?? '').toString().trim().toLowerCase();
-  if (['in','cobro','entrada','abono'].includes(t)) return 'in';
-  if (['out','pago','salida','cargo','gasto'].includes(t)) return 'out';
-  return 'out';
-};
-
-const resolveImportType = (amount, rawType) => {
-  const n = Number(amount);
-  const hasExplicitType = !!norm(rawType);
-  const mappedType = hasExplicitType ? typeMap(rawType) : null;
-
-  if (mappedType === 'out') {
-    return Number.isFinite(n) && n < 0 ? 'in' : 'out';
-  }
-
-  if (mappedType === 'in') {
-    return 'in';
-  }
-
-  return Number.isFinite(n) && n < 0 ? 'out' : 'in';
-};
-
 
 const normalizeAmountByType = (amount, type) => {
   const n = Number(amount)
@@ -451,17 +448,44 @@ const toUTCYMD = d => {
 };
 const amtKey = n => Number(Math.abs(n)).toFixed(2);
 const dirBySign = n => (n < 0 ? 'out' : 'in');
-const buildExternalId = ({ dateUTC, amount, accountAlias, categoryName, counterpartyName, concept }) => {
+const buildExternalId = ({ dateUTC, amount, accountAlias, categoryName, counterpartyNif, concept }) => {
   const base = [
     toUTCYMD(dateUTC),
     dirBySign(amount),
     amtKey(amount),
     canon(accountAlias),
     canon(categoryName),
-    canon(counterpartyName),
+    canon(counterpartyNif),
     canon(concept)
   ].join('|');
   return crypto.createHash('sha1').update(base).digest('hex');
+};
+
+const validImportTypes = new Set(['in', 'out']);
+const validImportStatuses = new Set(['pending', 'paid', 'cancelled']);
+const importError = (row, error, value, message) => ({ row, error, value, message });
+
+const hasImportValues = (row) =>
+  Object.entries(row).some(([key, value]) => key !== '__rowNumber' && norm(value) !== '');
+
+const readRowsFromExcelSheet = (ws) => {
+  const matrix = xlsx.utils.sheet_to_json(ws, { header: 1, raw: true, blankrows: false });
+  for (let i = 0; i < Math.min(20, matrix.length); i++) {
+    const hdrMapped = (matrix[i] || []).map(headerMap);
+    const knownHeaders = hdrMapped.filter(Boolean);
+    if (knownHeaders.includes('date') && knownHeaders.includes('amount') && knownHeaders.includes('accountAlias')) {
+      return matrix.slice(i + 1).map((r, rowIndex) => {
+        const obj = {};
+        hdrMapped.forEach((k, idx) => {
+          if (k) obj[k] = r[idx] ?? '';
+        });
+        obj.__rowNumber = i + rowIndex + 2;
+        return obj;
+      });
+    }
+  }
+
+  return [];
 };
 
 
@@ -475,33 +499,9 @@ export const importCashflows = async (req, res) => {
 
     if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
       const wb = xlsx.read(req.file.buffer, { type: 'buffer', cellDates: true });
-
-      // primera hoja con datos
-      for (const sheetName of wb.SheetNames) {
-        const ws = wb.Sheets[sheetName];
-        const data = xlsx.utils.sheet_to_json(ws, { defval: '', raw: true });
-        if (data.length) { rows = data; break; }
-      }
-
-      // fallback: cabecera en fila 2/3
-      if (!rows.length) {
-        for (const sheetName of wb.SheetNames) {
-          const ws = wb.Sheets[sheetName];
-          const matrix = xlsx.utils.sheet_to_json(ws, { header: 1, raw: true });
-          for (let i = 0; i < Math.min(20, matrix.length); i++) {
-            const hdrMapped = (matrix[i] || []).map(headerMap).filter(Boolean);
-            if (hdrMapped.includes('date') && hdrMapped.includes('amount')) {
-              rows = matrix.slice(i + 1).map(r => {
-                const obj = {};
-                hdrMapped.forEach((k, idx) => { obj[k] = r[idx]; });
-                return obj;
-              });
-              if (rows.length) break;
-            }
-          }
-          if (rows.length) break;
-        }
-      }
+      const firstSheetName = wb.SheetNames[0];
+      if (!firstSheetName) return res.status(400).json({ error: 'EMPTY_FILE' });
+      rows = readRowsFromExcelSheet(wb.Sheets[firstSheetName]);
     } else if (name.endsWith('.csv')) {
       rows = parseCsv(req.file.buffer.toString('utf8'), {
         columns: true, skip_empty_lines: true, bom: true, trim: true
@@ -510,44 +510,71 @@ export const importCashflows = async (req, res) => {
       return res.status(400).json({ error: 'UNSUPPORTED_FORMAT' });
     }
 
+    rows = rows.filter(hasImportValues);
+
     if (!rows.length) return res.status(400).json({ error: 'EMPTY_FILE' });
 
     const map = {};
     Object.keys(rows[0]).forEach(h => { map[h] = headerMap(h) || h; });
 
     const errors = [];
-    let created = 0, skipped = 0;
+    let inserted = 0, skipped = 0;
 
     for (let i = 0; i < rows.length; i++) {
       const raw = rows[i];
+      const rowNumber = Number(raw.__rowNumber) || i + 2;
       const rec = {};
       for (const [h, v] of Object.entries(raw)) {
+        if (h === '__rowNumber') continue;
         const k = map[h];
         if (k) rec[k] = v;
       }
 
-
       const date = parseDate(rec.date);
-        if (!date) { errors.push({ row: i + 1, error: 'INVALID_DATE', value: rec.date }); continue; }
-
-      
-      let amount = parseAmount(rec.amount);
-      if (Number.isNaN(amount)) {
-        errors.push({ row: i + 2, error: 'INVALID_AMOUNT', value: rec.amount });
+      if (!date) {
+        errors.push(importError(rowNumber, 'INVALID_DATE', rec.date, 'La fecha no es válida'));
         continue;
       }
 
-      const accountAlias = norm(rec.account);
-      if (!accountAlias) { errors.push({ row: i + 2, error: 'ACCOUNT_REQUIRED' }); continue; }
-      const acc = await Account.findOne({ alias: accountAlias }, { _id: 1, alias: 1 }).lean();
-      if (!acc) { errors.push({ row: i + 2, error: 'ACCOUNT_NOT_FOUND', value: rec.account }); continue; }
+      let amount = parseAmount(rec.amount);
+      if (Number.isNaN(amount)) {
+        errors.push(importError(rowNumber, 'INVALID_AMOUNT', rec.amount, 'El importe debe ser numérico'));
+        continue;
+      }
+
+      const type = lc(rec.type);
+      if (!validImportTypes.has(type)) {
+        errors.push(importError(rowNumber, 'INVALID_TYPE', rec.type, 'El tipo debe ser in u out'));
+        continue;
+      }
+
+      const status = lc(rec.status);
+      if (!validImportStatuses.has(status)) {
+        errors.push(importError(rowNumber, 'INVALID_STATUS', rec.status, 'El estado debe ser pending, paid o cancelled'));
+        continue;
+      }
+
+      const accountAlias = norm(rec.accountAlias);
+      if (!accountAlias) {
+        errors.push(importError(rowNumber, 'ACCOUNT_REQUIRED', rec.accountAlias, 'La columna accountAlias es obligatoria'));
+        continue;
+      }
+
+      const acc = await Account.findOne({ alias: new RegExp('^' + accountAlias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') }, { _id: 1, alias: 1 }).lean();
+      if (!acc) {
+        errors.push(importError(rowNumber, 'ACCOUNT_NOT_FOUND', rec.accountAlias, 'No existe una cuenta con ese alias'));
+        continue;
+      }
 
       let counterpartyId = null;
-      if (rec.counterparty) {
-        const cpName = norm(rec.counterparty);
-        let cp = await Counterparty.findOne({ name: cpName }, { _id: 1 }).lean();
+      const counterpartyNif = norm(rec.counterpartyNif);
+      if (counterpartyNif) {
+        let cp = await Counterparty.findOne({ nif: counterpartyNif }, { _id: 1 }).lean();
         if (!cp) {
-          const createdCp = await Counterparty.create({ name: cpName });
+          const createdCp = await Counterparty.create({
+            name: counterpartyNif,
+            nif: counterpartyNif,
+          });
           counterpartyId = createdCp._id;
         } else {
           counterpartyId = cp._id;
@@ -555,73 +582,35 @@ export const importCashflows = async (req, res) => {
       }
 
       let categoryId = null;
-      if (rec.category) {
+      const categoryName = norm(rec.categoryName);
+      if (categoryName) {
         const cat = await Category.findOne(
-          { name: new RegExp('^' + norm(rec.category) + '$', 'i') },
+          { name: new RegExp('^' + categoryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
           { _id: 1 }
         ).lean();
-        if (!cat) { errors.push({ row: i + 2, error: 'CATEGORY_NOT_FOUND', value: rec.category }); continue; }
+        if (!cat) {
+          errors.push(importError(rowNumber, 'CATEGORY_NOT_FOUND', rec.categoryName, 'No existe una categoría con ese nombre'));
+          continue;
+        }
         categoryId = cat._id;
       }
 
-      const type = resolveImportType(amount, rec.type);
       amount = normalizeAmountByType(amount, type);
 
       const concept = norm(rec.concept);
-      const status = ['pending','paid','cancelled'].includes(lc(rec.status)) ? lc(rec.status) : 'pending';
-
-      /*await Cashflow.create({
-        date,
-        account: acc._id,
-        counterparty: counterpartyId,
-        amount,              // puede ser negativo
-        type,                // 'in' si negativo
-        category: categoryId,
-        concept,
-        status,
-      });
-      created++;
-      // === clave única canónica para idempotencia ===
-     const externalId = buildExternalId({
-       dateUTC: date,
-        amount,
-        accountAlias: acc.alias,
-        categoryName: rec.category,
-        counterpartyName: rec.counterparty,
-        concept
-      });
-
-      const payload = {
-        date,
-        account: acc._id,
-        counterparty: counterpartyId,
-        amount,
-        type,                // se mantiene, la clave no depende de él
-        category: categoryId,
-        concept,
-        status,
-        source: 'upload',
-        externalId
-      };
-
-      const ret = await Cashflow.updateOne(
-        { externalId },
-        { $setOnInsert: payload },
-        { upsert: true }
-      );
-      if (ret.upsertedCount === 1) created++; else skipped++;*/
 
        // === clave única canónica para idempotencia ===
       const externalId = buildExternalId({
         dateUTC: date,
         amount,
         accountAlias: acc.alias,
-        categoryName: rec.category,
-        counterpartyName: rec.counterparty,
+        categoryName,
+        counterpartyNif,
         concept
       });
 
       const payload = {
+        user: req.user.sub,
         date,
         account: acc._id,
         counterparty: counterpartyId,
@@ -637,13 +626,20 @@ export const importCashflows = async (req, res) => {
       const ret = await Cashflow.updateOne(
         { externalId },
         { $setOnInsert: payload },
-        { upsert: true }
+        { upsert: true, runValidators: true }
       );
-      if (ret.upsertedCount === 1) created++; else skipped++;
+      if (ret.upsertedCount === 1) inserted++; else skipped++;
 
     }
 
-    res.json({ created, errorsCount: errors.length, errors });   
+    res.json({
+      totalRows: rows.length,
+      inserted,
+      skipped,
+      errors,
+      errorsCount: errors.length,
+      created: inserted,
+    });   
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

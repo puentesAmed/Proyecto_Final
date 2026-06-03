@@ -114,6 +114,7 @@ MongoDB almacena:
 - Axios
 - FullCalendar
 - Recharts
+- ExcelJS
 
 ### Backend
 
@@ -128,6 +129,7 @@ MongoDB almacena:
 - Morgan
 - Express Rate Limit
 - csv-parse
+- xlsx
 
 ---
 
@@ -432,7 +434,19 @@ POST   /api/cashflows
 PATCH  /api/cashflows/:id
 PATCH  /api/cashflows/:id/status
 DELETE /api/cashflows/:id
+POST   /api/cashflows/import
 ```
+
+La importación usa Excel `.xlsx` como plantilla principal y mantiene CSV como compatibilidad secundaria.
+La plantilla se descarga desde el frontend con dos hojas: `Cashflows` e `Instrucciones`.
+La hoja `Cashflows` incluye ejemplos y estas columnas:
+
+```text
+accountAlias, categoryName, counterpartyNif, date, amount, type, concept, status
+```
+
+El backend acepta `.xlsx`, `.xls` y `.csv`, lee la primera hoja en Excel y valida fecha, importe, tipo, estado y cuenta existente.
+La respuesta devuelve `totalRows`, `inserted`, `skipped` y `errors`.
 
 ### Categories
 

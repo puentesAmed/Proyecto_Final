@@ -11,6 +11,40 @@ const colorFromAlias = (alias = '') => {
   return palette[h % palette.length];
 };
 
+const normalizeAlias = (alias) => String(alias || '').trim();
+const normalizeAliasKey = (alias) => normalizeAlias(alias).toLocaleLowerCase('es-ES');
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const duplicateAliasResponse = (res) =>
+  res.status(409).json({
+    error: 'ACCOUNT_ALIAS_DUPLICATED',
+    message: 'Ya existe una cuenta con ese alias',
+  });
+
+const isDuplicateKeyError = (error) =>
+  error?.code === 11000 &&
+  (
+    Object.prototype.hasOwnProperty.call(error?.keyPattern || {}, 'aliasNormalized') ||
+    Object.prototype.hasOwnProperty.call(error?.keyValue || {}, 'aliasNormalized')
+  );
+
+async function ensureUniqueAlias(alias, excludeId = null) {
+  const cleanAlias = normalizeAlias(alias);
+  const aliasNormalized = normalizeAliasKey(alias);
+  const query = {
+    $or: [
+      { aliasNormalized },
+      { alias: new RegExp(`^${escapeRegex(cleanAlias)}$`, 'i') },
+    ],
+  };
+
+  if (excludeId) {
+    query._id = { $ne: excludeId };
+  }
+
+  return !(await Account.exists(query));
+}
+
 // ── Listar cuentas ──────────────────────────────────────────────────────────────
 export const list = async (_req, res) => {
   const rows = await Account.find({}, { alias:1, bank:1, number:1, initialBalance:1, color:1 })
@@ -21,46 +55,69 @@ export const list = async (_req, res) => {
 
 // ── Crear cuenta ────────────────────────────────────────────────────────────────
 export const create = async (req, res) => {
-  const { alias, bank, number, initialBalance, color } = req.body;
-  if (!alias) return res.status(400).json({ error: 'ALIAS_REQUIRED' });
+  try {
+    const { bank, number, initialBalance, color } = req.body;
+    const alias = normalizeAlias(req.body.alias);
+    if (!alias) return res.status(400).json({ error: 'ALIAS_REQUIRED', message: 'El alias de la cuenta es obligatorio' });
 
-  // color explícito válido → úsalo; si no, uno derivado del alias
-  const provided = colorSafe(color);
-  const finalColor = provided || colorFromAlias(alias);
+    if (!(await ensureUniqueAlias(alias))) {
+      return duplicateAliasResponse(res);
+    }
 
-  const doc = await Account.create({
-    alias,
-    bank: bank || '',
-    number: number || '',
-    initialBalance: initialBalance ?? 0,
-    color: finalColor,
-  });
+    // color explícito válido → úsalo; si no, uno derivado del alias
+    const provided = colorSafe(color);
+    const finalColor = provided || colorFromAlias(alias);
 
-  const json = doc.toObject({ versionKey: false });
-  res.status(201).json(json);
+    const doc = await Account.create({
+      alias,
+      bank: bank || '',
+      number: number || '',
+      initialBalance: initialBalance ?? 0,
+      color: finalColor,
+    });
+
+    const json = doc.toObject({ versionKey: false });
+    res.status(201).json(json);
+  } catch (error) {
+    if (isDuplicateKeyError(error)) return duplicateAliasResponse(res);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 // ── Actualizar cuenta (PATCH) ───────────────────────────────────────────────────
 export const update = async (req, res) => {
-  const { id } = req.params;
-  const patch = {};
+  try {
+    const { id } = req.params;
+    const patch = {};
 
-  // Campos permitidos
-  if (req.body.alias !== undefined) patch.alias = req.body.alias;
-  if (req.body.bank !== undefined) patch.bank = req.body.bank;
-  if (req.body.number !== undefined) patch.number = req.body.number;
-  if (req.body.initialBalance !== undefined) patch.initialBalance = req.body.initialBalance;
+    // Campos permitidos
+    if (req.body.alias !== undefined) {
+      const alias = normalizeAlias(req.body.alias);
+      if (!alias) return res.status(400).json({ error: 'ALIAS_REQUIRED', message: 'El alias de la cuenta es obligatorio' });
+      if (!(await ensureUniqueAlias(alias, id))) {
+        return duplicateAliasResponse(res);
+      }
+      patch.alias = alias;
+      patch.aliasNormalized = normalizeAliasKey(alias);
+    }
+    if (req.body.bank !== undefined) patch.bank = req.body.bank;
+    if (req.body.number !== undefined) patch.number = req.body.number;
+    if (req.body.initialBalance !== undefined) patch.initialBalance = req.body.initialBalance;
 
-  // Validar color si viene
-  if (req.body.color !== undefined) {
-    const safe = colorSafe(req.body.color);
-    if (!safe) return res.status(400).json({ error: 'INVALID_COLOR_HEX' });
-    patch.color = safe;
+    // Validar color si viene
+    if (req.body.color !== undefined) {
+      const safe = colorSafe(req.body.color);
+      if (!safe) return res.status(400).json({ error: 'INVALID_COLOR_HEX' });
+      patch.color = safe;
+    }
+
+    const updated = await Account.findByIdAndUpdate(id, patch, { new: true, fields: { __v: 0 }, runValidators: true }).lean();
+    if (!updated) return res.status(404).json({ error: 'not_found' });
+    res.json(updated);
+  } catch (error) {
+    if (isDuplicateKeyError(error)) return duplicateAliasResponse(res);
+    res.status(500).json({ error: error.message });
   }
-
-  const updated = await Account.findByIdAndUpdate(id, patch, { new: true, fields: { __v: 0 } }).lean();
-  if (!updated) return res.status(404).json({ error: 'not_found' });
-  res.json(updated);
 };
 
 // ── Eliminar cuenta ─────────────────────────────────────────────────────────────

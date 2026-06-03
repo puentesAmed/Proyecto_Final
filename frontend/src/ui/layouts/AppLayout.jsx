@@ -36,9 +36,9 @@ const PAGES = Object.freeze([
   { name: 'Dashboard', path: '/dashboard' },
   { name: 'Calendario', path: '/calendar' },
   { name: 'Totales', path: '/totals' },
-  { name: 'Cuentas', path: '/accounts' },
-  { name: 'Importar', path: '/import' },
-  { name: 'Ajustes', path: '/settings' },
+  { name: 'Cuentas', path: '/accounts', roles: ['admin'] },
+  { name: 'Importar', path: '/import', roles: ['admin'] },
+  { name: 'Ajustes', path: '/settings', roles: ['admin'] },
 ]);
 
 function NavItem({ to, children, onClick }) {
@@ -71,8 +71,9 @@ function NavItem({ to, children, onClick }) {
 
 export function AppLayout() {
   const { user, logout } = useAuth();
-  const { items, markAllAsRead, clearAll, push } = useNotifications();
-  const unreadCount = items.filter((item) => !item.read).length;
+  const { ownerId, items, markAllAsRead, clearAll } = useNotifications();
+  const visibleNotifications = items.filter((item) => item.userId === ownerId);
+  const unreadCount = visibleNotifications.filter((item) => !item.read).length;
 
   const toast = useToast();
   const nav = useNavigate();
@@ -89,6 +90,7 @@ export function AppLayout() {
   const footerBg = useColorModeValue('brand.100', 'neutral.800');
   const footerColor = useColorModeValue('neutral.900', 'neutral.100');
   const hoverLogoutBg = useColorModeValue('neutral.100', 'neutral.700');
+  const visiblePages = PAGES.filter((page) => !page.roles || page.roles.includes(user?.role));
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 6);
@@ -102,8 +104,20 @@ export function AppLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loc.pathname]);
 
+  React.useEffect(() => {
+    if (loc.state?.reason === 'forbidden') {
+      toast({
+        title: 'Acceso restringido',
+        description: 'No tienes permisos para abrir esa sección.',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      nav(loc.pathname, { replace: true, state: null });
+    }
+  }, [loc.pathname, loc.state, nav, toast]);
+
   const handleLogout = () => {
-    push({ type: 'info', title: 'Sesión cerrada', message: 'Has salido correctamente de la aplicación' });
     logout();
     toast({
       title: 'Sesión cerrada',
@@ -144,7 +158,7 @@ export function AppLayout() {
           </HStack>
 
           <HStack spacing={1} ml={6} display={{ base: 'none', md: 'flex' }}>
-            {PAGES.map((p) => (
+            {visiblePages.map((p) => (
               <NavItem key={p.path} to={p.path}>
                 {p.name}
               </NavItem>
@@ -181,10 +195,10 @@ export function AppLayout() {
                   Notificaciones recientes
                 </Text>
                 <MenuDivider />
-                {items.length === 0 ? (
+                {visibleNotifications.length === 0 ? (
                   <MenuItem isDisabled>No hay notificaciones</MenuItem>
                 ) : (
-                  items.slice(0, 6).map((item) => (
+                  visibleNotifications.slice(0, 6).map((item) => (
                     <MenuItem key={item.id} display="block" whiteSpace="normal">
                       <Text fontWeight="semibold">{item.title}</Text>
                       {item.message ? <Text fontSize="sm">{item.message}</Text> : null}
@@ -231,7 +245,7 @@ export function AppLayout() {
           <DrawerHeader borderBottomWidth="1px">Navegación</DrawerHeader>
           <DrawerBody>
             <VStack align="stretch" spacing={1}>
-              {PAGES.map((p) => (
+              {visiblePages.map((p) => (
                 <NavItem key={p.path} to={p.path} onClick={onClose}>
                   {p.name}
                 </NavItem>

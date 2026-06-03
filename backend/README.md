@@ -16,6 +16,8 @@ La documentación principal está en el README de la raíz del repositorio.
 - CORS
 - Morgan
 - Express Rate Limit
+- csv-parse
+- xlsx
 
 ## Variables de entorno
 
@@ -54,4 +56,30 @@ Health check:
 
 ```text
 http://localhost:3000/health
+```
+
+## Importación de cashflows
+
+El endpoint `POST /api/cashflows/import` acepta Excel `.xlsx` y `.xls` como formato principal, y mantiene `.csv` como compatibilidad secundaria.
+
+En archivos Excel se lee la primera hoja del libro. La plantilla recomendada se descarga desde el frontend y contiene una hoja `Cashflows` con estas columnas:
+
+```text
+accountAlias, categoryName, counterpartyNif, date, amount, type, concept, status
+```
+
+Validaciones aplicadas por backend:
+
+```text
+date válida
+amount numérico
+type: in | out
+status: pending | paid | cancelled
+accountAlias existente
+```
+
+La respuesta de importación incluye:
+
+```text
+totalRows, inserted, skipped, errors
 ```

@@ -1,11 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Box,
   Heading,
   Text,
   Select,
   Button,
-  Input,
   useColorMode,
   useToast,
   AlertDialog,
@@ -17,11 +16,9 @@ import {
   Stack,
   Divider,
   HStack,
-  VStack,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { clearAllCashflows } from '@/api/forecastsService.js';
-import { api } from '@/lib/api.js';
 
 export function SettingsPage() {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -30,14 +27,6 @@ export function SettingsPage() {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [inviteBusy, setInviteBusy] = useState(false);
-  const [invites, setInvites] = useState([]);
-  const [lastInviteCode, setLastInviteCode] = useState('');
-  const [inviteForm, setInviteForm] = useState({
-    email: '',
-    role: 'fin',
-    expiresInDays: '7',
-  });
 
   // Preferencias (placeholder para guardar en el futuro)
   const [currency, setCurrency] = useState('EUR');
@@ -52,26 +41,6 @@ export function SettingsPage() {
   const btnBg    = useColorModeValue('brand.500', 'accent.500');
   const btnHover = useColorModeValue('brand.600', 'accent.600');
   const btnText  = useColorModeValue('white', 'black');
-
-  const loadInvites = async () => {
-    try {
-      const { data } = await api.get('/registration-invites');
-      setInvites(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-      toast({
-        title: 'Error',
-        description: 'No se pudieron cargar las invitaciones.',
-        status: 'error',
-        duration: 4000,
-        isClosable: true,
-      });
-    }
-  };
-
-  useEffect(() => {
-    loadInvites();
-  }, []);
 
   // Cambiar selección de tema sin aplicar aún
   const handleThemeSelect = (e) => {
@@ -120,61 +89,6 @@ export function SettingsPage() {
     } finally {
       setBusy(false);
       setConfirmOpen(false);
-    }
-  };
-
-  const handleCreateInvite = async () => {
-    setInviteBusy(true);
-    try {
-      const payload = {
-        email: inviteForm.email,
-        role: inviteForm.role,
-        expiresInDays: Number(inviteForm.expiresInDays || 0),
-      };
-      const { data } = await api.post('/registration-invites', payload);
-      setLastInviteCode(data.code || '');
-      setInviteForm({ email: '', role: 'fin', expiresInDays: '7' });
-      toast({
-        title: 'Invitación creada',
-        description: `Código generado para ${data.email}.`,
-        status: 'success',
-        duration: 4000,
-        isClosable: true,
-      });
-      await loadInvites();
-    } catch (e) {
-      console.error(e);
-      toast({
-        title: 'Error',
-        description: e?.response?.data?.error || 'No se pudo crear la invitación.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setInviteBusy(false);
-    }
-  };
-
-  const handleDeleteInvite = async (id) => {
-    try {
-      await api.delete(`/registration-invites/${id}`);
-      toast({
-        title: 'Invitación eliminada',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-      await loadInvites();
-    } catch (e) {
-      console.error(e);
-      toast({
-        title: 'Error',
-        description: 'No se pudo eliminar la invitación.',
-        status: 'error',
-        duration: 4000,
-        isClosable: true,
-      });
     }
   };
 
@@ -243,121 +157,6 @@ export function SettingsPage() {
                 Guardar cambios
               </Button>
             </HStack>
-          </Box>
-
-          {/* Acciones */}
-          <Box
-            bg={cardBg}
-            border="1px solid"
-            borderColor={border}
-            rounded="md"
-            p={6}
-          >
-            <Heading size="sm" mb={4}>Invitaciones de registro</Heading>
-            <Text fontSize="sm" mb={4} color={muted}>
-              Solo los emails autorizados con un código generado aquí podrán crear una cuenta.
-            </Text>
-
-            <Stack spacing={3} maxW="560px">
-              <Input
-                placeholder="Email autorizado"
-                value={inviteForm.email}
-                onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
-                bg={useColorModeValue('white', 'neutral.700')}
-                borderColor={border}
-              />
-              <HStack align="stretch">
-                <Select
-                  value={inviteForm.role}
-                  onChange={(e) => setInviteForm((f) => ({ ...f, role: e.target.value }))}
-                  bg={useColorModeValue('white', 'neutral.700')}
-                  borderColor={border}
-                >
-                  <option value="fin">Finanzas</option>
-                  <option value="viewer">Solo lectura</option>
-                  <option value="admin">Administrador</option>
-                </Select>
-                <Select
-                  value={inviteForm.expiresInDays}
-                  onChange={(e) => setInviteForm((f) => ({ ...f, expiresInDays: e.target.value }))}
-                  bg={useColorModeValue('white', 'neutral.700')}
-                  borderColor={border}
-                >
-                  <option value="1">Caduca en 1 día</option>
-                  <option value="7">Caduca en 7 días</option>
-                  <option value="30">Caduca en 30 días</option>
-                  <option value="0">Sin caducidad</option>
-                </Select>
-              </HStack>
-
-              <HStack>
-                <Button
-                  bg={btnBg}
-                  color={btnText}
-                  _hover={{ bg: btnHover }}
-                  onClick={handleCreateInvite}
-                  isLoading={inviteBusy}
-                >
-                  Generar código
-                </Button>
-              </HStack>
-
-              {lastInviteCode && (
-                <Box p={3} rounded="md" border="1px solid" borderColor={border}>
-                  <Text fontSize="sm" color={muted} mb={1}>Último código generado</Text>
-                  <HStack justify="space-between" wrap="wrap">
-                    <Text fontWeight="bold" letterSpacing="0.08em">{lastInviteCode}</Text>
-                    <Button
-                      size="sm"
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(lastInviteCode);
-                        toast({
-                          title: 'Código copiado',
-                          status: 'success',
-                          duration: 2000,
-                          isClosable: true,
-                        });
-                      }}
-                    >
-                      Copiar
-                    </Button>
-                  </HStack>
-                </Box>
-              )}
-
-              <Divider />
-
-              <VStack align="stretch" spacing={3}>
-                {invites.map((invite) => (
-                  <Box key={invite._id} p={3} rounded="md" border="1px solid" borderColor={border}>
-                    <HStack justify="space-between" align="start">
-                      <Box>
-                        <Text fontWeight="semibold">{invite.email}</Text>
-                        <Text fontSize="sm" color={muted}>
-                          Rol: {invite.role} · {invite.usedAt ? 'Usada' : 'Pendiente'}
-                        </Text>
-                        <Text fontSize="sm" color={muted}>
-                          {invite.expiresAt
-                            ? `Caduca: ${new Date(invite.expiresAt).toLocaleString('es-ES')}`
-                            : 'Sin caducidad'}
-                        </Text>
-                      </Box>
-                      <Button
-                        size="sm"
-                        colorScheme="red"
-                        variant="outline"
-                        onClick={() => handleDeleteInvite(invite._id)}
-                      >
-                        Eliminar
-                      </Button>
-                    </HStack>
-                  </Box>
-                ))}
-                {!invites.length && (
-                  <Text fontSize="sm" color={muted}>Todavía no hay invitaciones registradas.</Text>
-                )}
-              </VStack>
-            </Stack>
           </Box>
 
           {/* Acciones */}

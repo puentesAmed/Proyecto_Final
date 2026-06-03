@@ -64,7 +64,7 @@ import { AccountsPage } from './ui/pages/AccountsPage.jsx';
 import { ImportPage } from './ui/pages/ImportPage.jsx';
 import { SettingsPage } from './ui/pages/SettingsPage.jsx';
 import { DashboardPage } from './ui/pages/DashboardPage.jsx';
-import { RequireAuth } from './ui/RequiereAuth.jsx';
+import { RequireRole } from './ui/RequiereAuth.jsx';
 import { ProtectedLayout } from './ui/ProtectedLayout.jsx';
 
 export const router = createBrowserRouter([
@@ -87,25 +87,25 @@ export const router = createBrowserRouter([
       {
         path: 'accounts',
         element: (
-          <RequireAuth allowedRoles={['admin']}>
+          <RequireRole allowedRoles={['admin']}>
             <AccountsPage />
-          </RequireAuth>
+          </RequireRole>
         ),
       },
       {
         path: 'import',
         element: (
-          <RequireAuth allowedRoles={['admin']}>
+          <RequireRole allowedRoles={['admin']}>
             <ImportPage />
-          </RequireAuth>
+          </RequireRole>
         ),
       },
       {
         path: 'settings',
         element: (
-          <RequireAuth allowedRoles={['admin']}>
+          <RequireRole allowedRoles={['admin']}>
             <SettingsPage />
-          </RequireAuth>
+          </RequireRole>
         ),
       },
     ],

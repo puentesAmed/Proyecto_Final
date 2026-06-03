@@ -11,11 +11,13 @@ import {
   Input,
   Select,
   useColorModeValue,
-  Text
+  Text,
+  useToast
 } from "@chakra-ui/react";
 
 export function NewForecastModal({ date = null, onClose }) {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [isCreatingCounterparty, setIsCreatingCounterparty] = useState(false);
   const [newCounterpartyName, setNewCounterpartyName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,9 +111,20 @@ export function NewForecastModal({ date = null, onClose }) {
     } catch (err) {
       console.error("Error al crear forecast:", err.response?.data || err.message);
       if (err.message === "EMPTY_COUNTERPARTY_NAME") {
-        alert("Escribe el nombre del proveedor antes de guardarlo.");
+        toast({
+          title: "Escribe el nombre del proveedor antes de guardarlo",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
       } else {
-        alert("Error al crear forecast. Mira la consola para más detalles.");
+        toast({
+          title: "Error al crear forecast",
+          description: "Mira la consola para más detalles.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       }
     } finally {
       setIsSubmitting(false);

@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { list, create, update, remove } from '../controllers/categories.controller.js';
 import Category from '../models/Category.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const r = Router();
+r.use(requireAuth);
+
 r.get('/', async (_req, res) => {
   try {
     const cats = await Category.find({}, { _id: 1, name: 1 })

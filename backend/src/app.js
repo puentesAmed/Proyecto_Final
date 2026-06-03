@@ -13,7 +13,6 @@ import scenariosRoutes from './routes/scenarios.routes.js'
 import reportsRoutes from './routes/reports.routes.js'
 import counterpartiesRoutes from './routes/counterparties.routes.js'
 import categoriesRoutes from './routes/categories.routes.js'
-import registrationInvitesRoutes from './routes/registrationInvites.routes.js'
 
 // ⚠️ crear app ANTES de usar cualquier middleware
 const app = express()
@@ -51,7 +50,6 @@ app.get('/health', (_req,res)=> res.json({ ok:true }))
 app.use('/api/auth', authRoutes)
 app.use('/api/accounts', accountRoutes)
 app.use('/api/counterparties', counterpartiesRoutes)
-app.use('/api/registration-invites', registrationInvitesRoutes)
 app.use('/api/cashflows', cashflowRoutes)
 app.use('/api/reports', reportsRoutes)
 app.use('/api/scenarios', scenariosRoutes)

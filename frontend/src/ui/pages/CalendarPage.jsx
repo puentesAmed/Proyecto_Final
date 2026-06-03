@@ -6,12 +6,13 @@ import esLocale from "@fullcalendar/core/locales/es";
 import { getCalendar } from "@/api/forecastsService.js";
 import { NewForecastModal } from "@/ui/components/NewForecastModal.jsx";
 import { api } from "@/lib/api.js";
-import { Button, useColorModeValue, useBreakpointValue } from "@chakra-ui/react";
+import { Button, useColorModeValue, useBreakpointValue, useToast } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { getAccounts } from "@/api/accountsService.js";
 import { setCashflowStatus } from "@/api/cashflowsService.js";
 import { createPortal } from "react-dom";
 import listPlugin from "@fullcalendar/list";
+import { useAuth } from "@/state/auth.js";
 
 /* ========= Utils ========= */
 const toISODate = (v) => {
@@ -157,6 +158,10 @@ function EventStatusMenu({ onChange }) {
 /* ========= Página ========= */
 export function CalendarPage() {
   const ref = useRef(null);
+  const toast = useToast();
+  const user = useAuth((state) => state.user);
+  const canManageCashflows = user?.role === "admin" || user?.role === "fin";
+  const canDeleteCashflows = user?.role === "admin";
   const [allEvents, setAllEvents] = useState([]);
   const [events, setEvents] = useState([]);
   const [open, setOpen] = useState(false);
@@ -282,7 +287,12 @@ export function CalendarPage() {
       setEvents(projectForCalendar(normalized, filters));
     } catch (err) {
       console.error(err);
-      alert("No se pudo cargar el calendario global");
+      toast({
+        title: "No se pudo cargar el calendario global",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   }
 
@@ -417,6 +427,11 @@ export function CalendarPage() {
 
   /* ===== efectos ===== */
   useEffect(() => { loadAll(); }, []);
+  useEffect(() => {
+    const refreshCalendar = () => loadAll();
+    window.addEventListener("cashflows:imported", refreshCalendar);
+    return () => window.removeEventListener("cashflows:imported", refreshCalendar);
+  }, []);
   useEffect(() => { setEvents(projectForCalendar(allEvents, filters)); }, [filters, allEvents]);
 
   // Totales por día (sin remount del calendario)
@@ -465,6 +480,7 @@ export function CalendarPage() {
 
       const id = ev.id || xp.cashflowId || xp.id || xp._id;
       if (!id) return;
+      if (!canDeleteCashflows) return;
 
       const nombre = xp?.counterparty?.name || xp?.accountAlias || "—";
       const ok = confirm(`¿Eliminar vencimiento de ${nombre} por ${Number(xp?.amount || 0).toLocaleString("es-ES", { minimumFractionDigits: 2 })}€?`);
@@ -474,7 +490,13 @@ export function CalendarPage() {
       loadAll();
     } catch (e) {
       console.error(e);
-      alert("No se pudo procesar la acción. Revisa la consola.");
+      toast({
+        title: "No se pudo procesar la acción",
+        description: "Revisa la consola para más detalles.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -573,7 +595,12 @@ export function CalendarPage() {
         await setCashflowStatus(id, next);
       } catch (err) {
         console.error(err);
-        alert("No se pudo actualizar el estado.");
+        toast({
+          title: "No se pudo actualizar el estado",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
         loadAll();
       }
     };
@@ -614,7 +641,7 @@ export function CalendarPage() {
             </span>
           )}
 
-          <EventStatusMenu onChange={handleStatusChange} />
+          {canManageCashflows && <EventStatusMenu onChange={handleStatusChange} />}
         </div>
 
         <div style={{ fontSize:14, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:600 }}>
@@ -684,7 +711,7 @@ export function CalendarPage() {
 
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <strong>{amount}€</strong>
-          <EventStatusMenu onChange={(next)=> {
+          {canManageCashflows && <EventStatusMenu onChange={(next)=> {
             const ymd = ev.startStr?.slice(0,10);
             const id  = ev.id || xp.cashflowId || xp.id || xp._id;
             if (!id) return;
@@ -693,9 +720,9 @@ export function CalendarPage() {
               const uiNext = computeUiStatus(next, ymd);
               return { ...e, _status: next, _ui: uiNext,
                 extendedProps: { ...(e.extendedProps||{}), status: next, uiStatus: uiNext } };
-            }));
+            })); 
             setCashflowStatus(id, next).catch(() => loadAll());
-          }}/>
+          }}/>}
         </div>
       </div>
     );
@@ -707,14 +734,16 @@ export function CalendarPage() {
         className="card"
         style={{ display:"flex", gap:12, flexWrap:"wrap", alignItems:"center", justifyContent:"space-between" }}
       >
-        <Button
-          bg={buttonBg}
-          color={buttonColor}
-          _hover={{ bg: buttonHover }}
-          onClick={() => { setSelectedDate(null); setOpen(true); }}
-        >
-          + Nuevo vencimiento
-        </Button>
+        {canManageCashflows && (
+          <Button
+            bg={buttonBg}
+            color={buttonColor}
+            _hover={{ bg: buttonHover }}
+            onClick={() => { setSelectedDate(null); setOpen(true); }}
+          >
+            + Nuevo vencimiento
+          </Button>
+        )}
 
         <label style={{ gap:10, display:"flex", alignItems:"center" }}>
           Cuenta:
@@ -843,7 +872,11 @@ export function CalendarPage() {
 
           /* Interacciones */
           eventClick={onEventClick}
-          dateClick={(info) => { setSelectedDate(info.dateStr); setOpen(true); }}
+          dateClick={(info) => {
+            if (!canManageCashflows) return;
+            setSelectedDate(info.dateStr);
+            setOpen(true);
+          }}
           eventDidMount={(info) => {
             const xp = info.event.extendedProps || {};
             if (xp.group) {

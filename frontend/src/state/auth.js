@@ -1,12 +1,26 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useNotifications } from './notifications.js'
 
+const getUserId = (user) => user?.id || user?._id || null
 
 export const useAuth = create(persist(
-    (set)=> ({
+    (set, get)=> ({
         user: null, token: null,
-        login: (user, token) => set({ user, token }),
-        logout: () => set({ user:null, token:null })
+        login: (user, token) => {
+            const nextUserId = getUserId(user)
+            const currentUserId = getUserId(get().user)
+
+            if (currentUserId !== nextUserId) {
+                useNotifications.getState().startSession(nextUserId)
+            }
+
+            set({ user, token })
+        },
+        logout: () => {
+            useNotifications.getState().endSession()
+            set({ user:null, token:null })
+        }
     }),
     { name:'auth' } // guarda en localStorage.auth
 ))

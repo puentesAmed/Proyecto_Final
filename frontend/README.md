@@ -16,6 +16,7 @@ La documentación principal está en el README de la raíz del repositorio.
 - Axios
 - FullCalendar
 - Recharts
+- ExcelJS
 
 ## Variables de entorno
 
@@ -50,3 +51,19 @@ http://localhost:5173
 
 El frontend no debe llamar directamente a rutas relativas como `/auth/register`.
 Las llamadas deben pasar por el cliente centralizado de Axios usando `VITE_API_URL`.
+
+## Importación
+
+La plantilla principal de importación se descarga en formato Excel `.xlsx` desde la página de Importar.
+Incluye una hoja `Cashflows`, una hoja `Instrucciones`, filas de ejemplo y validaciones para:
+
+```text
+type: in | out
+status: pending | paid | cancelled
+```
+
+El CSV se mantiene como compatibilidad secundaria con las mismas columnas:
+
+```text
+accountAlias, categoryName, counterpartyNif, date, amount, type, concept, status
+```

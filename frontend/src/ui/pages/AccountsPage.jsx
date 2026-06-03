@@ -34,6 +34,8 @@ const toHexSafe = (c) => {
   return /^#[0-9A-F]{6}$/.test(v) ? v : null;
 };
 
+const normalizeAlias = (alias) => String(alias || '').trim().toLocaleLowerCase('es-ES');
+
 export function AccountsPage() {
   const qc = useQueryClient();
   const toast = useToast();
@@ -59,7 +61,11 @@ export function AccountsPage() {
       qc.invalidateQueries({ queryKey: ['accounts'] });
       toast({ status: 'success', title: 'Cuenta creada' });
     },
-    onError: () => toast({ status: 'error', title: 'No se pudo crear la cuenta' }),
+    onError: (error) => toast({
+      status: 'error',
+      title: 'No se pudo crear la cuenta',
+      description: error?.response?.data?.message || 'Revisa los datos e inténtalo de nuevo.',
+    }),
   });
 
   const updateMut = useMutation({
@@ -74,7 +80,11 @@ export function AccountsPage() {
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(['accounts'], ctx.prev);
-      toast({ status: 'error', title: 'No se pudo actualizar' });
+      toast({
+        status: 'error',
+        title: 'No se pudo actualizar',
+        description: _err?.response?.data?.message || 'Revisa los datos e inténtalo de nuevo.',
+      });
     },
     onSuccess: () => toast({ status: 'success', title: 'Actualizado' }),
     onSettled: () => qc.invalidateQueries({ queryKey: ['accounts'] }),
@@ -90,9 +100,29 @@ export function AccountsPage() {
   });
 
   const onSubmit = (vals) => {
+    const alias = String(vals.alias || '').trim();
+    if (!alias) {
+      toast({
+        status: 'warning',
+        title: 'Alias obligatorio',
+        description: 'Escribe un alias para identificar la cuenta.',
+      });
+      return;
+    }
+
+    const duplicate = accounts.some((account) => normalizeAlias(account.alias) === normalizeAlias(alias));
+    if (duplicate) {
+      toast({
+        status: 'warning',
+        title: 'Cuenta duplicada',
+        description: 'Ya existe una cuenta con ese alias.',
+      });
+      return;
+    }
+
     const color = toHexSafe(vals.color) || undefined;
     createMut.mutate(
-      { ...vals, color },
+      { ...vals, alias, color },
       {
         onSuccess: () => reset(),
       }
@@ -122,6 +152,35 @@ export function AccountsPage() {
     }, 250);
 
     colorTimers.current.set(a._id, t);
+  };
+
+  const updateAlias = (account, nextAlias) => {
+    const alias = String(nextAlias || '').trim();
+    if (!alias) {
+      toast({
+        status: 'warning',
+        title: 'Alias obligatorio',
+        description: 'Escribe un alias para identificar la cuenta.',
+      });
+      return;
+    }
+
+    const duplicate = accounts.some(
+      (candidate) =>
+        candidate._id !== account._id &&
+        normalizeAlias(candidate.alias) === normalizeAlias(alias)
+    );
+
+    if (duplicate) {
+      toast({
+        status: 'warning',
+        title: 'Cuenta duplicada',
+        description: 'Ya existe una cuenta con ese alias.',
+      });
+      return;
+    }
+
+    updateMut.mutate({ id: account._id, payload: { alias } });
   };
 
   const handleDelete = (a) => {
@@ -252,9 +311,7 @@ export function AccountsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() =>
-                          updateMut.mutate({ id: a._id, payload: { alias: `${a.alias}*` } })
-                        }
+                        onClick={() => updateAlias(a, `${a.alias}*`)}
                         isLoading={updateMut.isPending && busy}
                         isDisabled={busy}
                       >
