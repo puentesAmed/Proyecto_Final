@@ -5,4 +5,4 @@ node_modules
 npm i
 package-lock.json
 .env.*
-backend/scripts/seed.js
+#backend/scripts/seed.js
