@@ -55,16 +55,16 @@ backend/
 Frontend:
 
 ```env
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=https://proyecto-final-backend-amed.onrender.com/api
 ```
 
 Backend:
 
 ```env
 PORT=3000
-MONGO_URI=mongodb://localhost:27017/prevision-tesoreria
+MONGO_URI=mongodb://localhost:27017/prevision-tesoreria(ejemplo)
 JWT_SECRET=cambia_este_secret_por_un_valor_largo
-CORS_ORIGINS=http://localhost:5173
+CORS_ORIGINS=http://localhost:5173(ejemplo)
 ```
 
 `VITE_API_URL` debe apuntar al backend. `CORS_ORIGINS` debe incluir el dominio del frontend.
