@@ -6,8 +6,8 @@ Aplicación fullstack para la previsión de tesorería de una empresa. Es una he
 
 | Servicio | URL |
 | --- | --- |
-| Frontend desplegado | Pendiente de publicar/configurar |
-| Backend desplegado | Pendiente de publicar/configurar |
+| Frontend desplegado | https://proyectofinalpuentes.netlify.app |
+| Backend desplegado | https://proyecto-final-backend-amed.onrender.com |
 
 ## Credenciales demo
 

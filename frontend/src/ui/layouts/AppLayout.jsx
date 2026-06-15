@@ -5,7 +5,6 @@ import {
   Flex,
   HStack,
   IconButton,
-  Button,
   Link as ChakraLink,
   useColorMode,
   useDisclosure,
@@ -36,7 +35,6 @@ const PAGES = Object.freeze([
   { name: 'Dashboard', path: '/dashboard' },
   { name: 'Calendario', path: '/calendar' },
   { name: 'Resumen financiero', path: '/totals' },
-  { name: 'Mi cuenta', path: '/profile' },
   { name: 'Cuentas', path: '/accounts', roles: ['admin'] },
   { name: 'Importar', path: '/import', roles: ['admin'] },
   { name: 'Configuración', path: '/settings', roles: ['admin'] },
@@ -55,8 +53,10 @@ function NavItem({ to, children, onClick }) {
       onClick={onClick}
       px={3}
       py={2}
-      borderRadius="lg"
+      borderRadius="md"
       color={linkCol}
+      fontSize="sm"
+      whiteSpace="nowrap"
       _hover={{ textDecoration: 'none', bg: hoverBg }}
       style={({ isActive }) => ({
         background: isActive ? activeBg : 'transparent',
@@ -90,7 +90,6 @@ export function AppLayout() {
   const contentColor = useColorModeValue('neutral.800', 'neutral.100');
   const footerBg = useColorModeValue('brand.100', 'neutral.800');
   const footerColor = useColorModeValue('neutral.900', 'neutral.100');
-  const hoverLogoutBg = useColorModeValue('neutral.100', 'neutral.700');
   const visiblePages = PAGES.filter((page) => !page.roles || page.roles.includes(user?.role));
 
   React.useEffect(() => {
@@ -141,24 +140,35 @@ export function AppLayout() {
         borderBottom="1px solid"
         borderColor={border}
         boxShadow={scrolled ? 'sm' : 'none'}
+        maxW="100%"
+        overflowX="hidden"
       >
-        <Flex align="center" px={{ base: 4, md: 6 }} py={2} gap={3}>
+        <Flex align="center" px={{ base: 3, md: 4, xl: 6 }} py={2} gap={{ base: 2, md: 3 }} minW={0}>
           <IconButton
             aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
             icon={isOpen ? <CloseIcon boxSize={3} /> : <HamburgerIcon boxSize={5} />}
-            display={{ base: 'inline-flex', md: 'none' }}
+            display={{ base: 'inline-flex', lg: 'none' }}
             onClick={isOpen ? onClose : onOpen}
             variant="ghost"
+            flexShrink={0}
           />
 
-          <HStack spacing={3}>
-            <Box w="9" h="9" borderRadius="xl" bg={brandDot} boxShadow="md" aria-hidden />
-            <Box lineHeight="short">
-              <Text fontWeight="bold">Previsión de Tesorería</Text>
+          <HStack spacing={{ base: 2, md: 3 }} minW={0} flexShrink={1}>
+            <Box w="9" h="9" borderRadius="xl" bg={brandDot} boxShadow="md" aria-hidden flexShrink={0} />
+            <Box lineHeight="short" minW={0}>
+              <Text fontWeight="bold" noOfLines={1} fontSize={{ base: 'sm', md: 'md' }}>
+                Previsión de Tesorería
+              </Text>
             </Box>
           </HStack>
 
-          <HStack spacing={1} ml={6} display={{ base: 'none', md: 'flex' }}>
+          <HStack
+            spacing={{ lg: 0, xl: 1 }}
+            ml={{ lg: 2, xl: 6 }}
+            display={{ base: 'none', lg: 'flex' }}
+            minW={0}
+            overflow="hidden"
+          >
             {visiblePages.map((p) => (
               <NavItem key={p.path} to={p.path}>
                 {p.name}
@@ -168,48 +178,51 @@ export function AppLayout() {
 
           <Spacer />
 
-          <HStack spacing={2}>
-            <Menu>
-              <MenuButton
-                as={IconButton}
-                aria-label="Notificaciones"
-                icon={<BellIcon />}
-                variant="ghost"
-                size="sm"
-                position="relative"
-                onClick={markAllAsRead}
-              />
+          <HStack spacing={{ base: 1, md: 2 }} flexShrink={0}>
+            <Box position="relative" flexShrink={0}>
+              <Menu>
+                <MenuButton
+                  as={IconButton}
+                  aria-label="Notificaciones"
+                  icon={<BellIcon />}
+                  variant="ghost"
+                  size="sm"
+                  onClick={markAllAsRead}
+                />
+                <MenuList maxW="380px">
+                  <Text px={3} py={2} fontSize="sm" fontWeight="bold">
+                    Notificaciones recientes
+                  </Text>
+                  <MenuDivider />
+                  {visibleNotifications.length === 0 ? (
+                    <MenuItem isDisabled>No hay notificaciones</MenuItem>
+                  ) : (
+                    visibleNotifications.slice(0, 6).map((item) => (
+                      <MenuItem key={item.id} display="block" whiteSpace="normal">
+                        <Text fontWeight="semibold">{item.title}</Text>
+                        {item.message ? <Text fontSize="sm">{item.message}</Text> : null}
+                      </MenuItem>
+                    ))
+                  )}
+                  <MenuDivider />
+                  <MenuItem onClick={clearAll}>Limpiar notificaciones</MenuItem>
+                </MenuList>
+              </Menu>
               {unreadCount > 0 && (
                 <Badge
                   colorScheme="red"
                   borderRadius="full"
                   px={2}
                   position="absolute"
-                  transform="translate(10px, -8px)"
+                  top="0"
+                  right="0"
+                  transform="translate(35%, -35%)"
                   pointerEvents="none"
                 >
                   {unreadCount}
                 </Badge>
               )}
-              <MenuList maxW="380px">
-                <Text px={3} py={2} fontSize="sm" fontWeight="bold">
-                  Notificaciones recientes
-                </Text>
-                <MenuDivider />
-                {visibleNotifications.length === 0 ? (
-                  <MenuItem isDisabled>No hay notificaciones</MenuItem>
-                ) : (
-                  visibleNotifications.slice(0, 6).map((item) => (
-                    <MenuItem key={item.id} display="block" whiteSpace="normal">
-                      <Text fontWeight="semibold">{item.title}</Text>
-                      {item.message ? <Text fontSize="sm">{item.message}</Text> : null}
-                    </MenuItem>
-                  ))
-                )}
-                <MenuDivider />
-                <MenuItem onClick={clearAll}>Limpiar notificaciones</MenuItem>
-              </MenuList>
-            </Menu>
+            </Box>
 
             <IconButton
               aria-label="Cambiar tema"
@@ -217,24 +230,28 @@ export function AppLayout() {
               icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
               size="sm"
               variant="ghost"
+              flexShrink={0}
             />
 
-            <HStack
-              as="button"
-              type="button"
-              px={2}
-              py={1}
-              borderRadius="lg"
-              border="1px solid"
-              borderColor={border}
-              onClick={handleLogout}
-              _hover={{ bg: hoverLogoutBg }}
-            >
-              <Avatar size="sm" name={user?.name || 'Usuario'} />
-              <Text display={{ base: 'none', md: 'inline' }} fontSize="sm">
-                Salir
-              </Text>
-            </HStack>
+            <Menu>
+              <MenuButton
+                as={IconButton}
+                aria-label="Menú de usuario"
+                icon={<Avatar size="sm" name={user?.name || 'Usuario'} />}
+                variant="ghost"
+                size="sm"
+                flexShrink={0}
+              />
+              <MenuList>
+                <Box px={3} py={2}>
+                  <Text fontWeight="semibold" noOfLines={1}>{user?.name || 'Usuario'}</Text>
+                  <Text fontSize="sm" color="gray.500" noOfLines={1}>{user?.email}</Text>
+                </Box>
+                <MenuDivider />
+                <MenuItem onClick={() => nav('/profile')}>Mi cuenta</MenuItem>
+                <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
+              </MenuList>
+            </Menu>
           </HStack>
         </Flex>
         {scrolled && <Divider opacity={0.25} />}
@@ -251,18 +268,12 @@ export function AppLayout() {
                   {p.name}
                 </NavItem>
               ))}
-              <Button mt={3} size="sm" onClick={toggleColorMode} variant="ghost">
-                {colorMode === 'light' ? 'Oscuro' : 'Claro'}
-              </Button>
-              <Button mt={1} size="sm" onClick={handleLogout}>
-                Salir
-              </Button>
             </VStack>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
 
-      <Box as="main" flex="1" px={{ base: 4, md: 6 }} py={6}>
+      <Box as="main" flex="1" px={{ base: 4, md: 6 }} py={6} minW={0} maxW="100%" overflowX="hidden">
         <Outlet />
       </Box>
 

@@ -23,7 +23,7 @@ Frontend React/Vite para una aplicación interna de previsión de tesorería emp
 Crear `frontend/.env.local`:
 
 ```env
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=https://proyecto-final-backend-amed.onrender.com/api
 ```
 
 En producción, `VITE_API_URL` debe apuntar al backend desplegado.

@@ -26,7 +26,7 @@ Crear `backend/.env`:
 PORT=3000
 MONGO_URI=mongodb://localhost:27017/prevision-tesoreria
 JWT_SECRET=cambia_este_secret_por_un_valor_largo
-CORS_ORIGINS=http://localhost:5173
+CORS_ORIGINS=https://proyectofinalpuentes.netlify.app
 ```
 
 `CORS_ORIGINS` acepta varios orígenes separados por coma.
