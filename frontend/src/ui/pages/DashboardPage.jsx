@@ -29,7 +29,9 @@ const getAccountId = (cashflow) =>
   String(cashflow?.account?._id ?? cashflow?.accountId ?? cashflow?.account ?? '');
 
 const getAccountName = (cashflow, fallbackId = '') =>
-  cashflow?.account?.alias || cashflow?.accountName || (fallbackId ? `Cuenta ${fallbackId}` : 'Sin cuenta');
+  [cashflow?.account?.bank, cashflow?.account?.alias || cashflow?.accountName]
+    .filter(Boolean)
+    .join(' · ') || (fallbackId ? `Cuenta ${fallbackId}` : 'Sin cuenta');
 
 const getCategoryId = (cashflow) =>
   String(cashflow?.category?._id ?? cashflow?.categoryId ?? cashflow?.category ?? '');
@@ -231,7 +233,7 @@ export function DashboardPage() {
           (accs || [])
             .map(a => ({
               value: String(a._id ?? a.id),
-              label: a.alias || a.name || `Cuenta ${a._id || a.id}`
+              label: [a.bank, a.alias || a.name].filter(Boolean).join(' · ') || `Cuenta ${a._id || a.id}`
             }))
             .sort((a, b) => a.label.localeCompare(b.label, 'es'))
         );
@@ -335,7 +337,6 @@ export function DashboardPage() {
             >
               <option value="pending">Pendiente</option>
               <option value="overdue">Vencido</option>
-              <option value="unpaid">Impagado</option>
               <option value="paid">Pagado</option>
               <option value="cancelled">Cancelado</option>
             </Select>

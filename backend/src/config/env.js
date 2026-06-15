@@ -7,7 +7,7 @@ import 'dotenv/config'
   }
 })
 
-const ORIGINS = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+const ORIGINS = (process.env.CORS_ORIGINS ?? process.env.CORS_ORIGIN ?? 'http://localhost:5173')
   .split(',')
   .map(s => s.trim())
   .filter(Boolean)

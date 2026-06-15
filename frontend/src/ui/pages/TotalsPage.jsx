@@ -56,6 +56,8 @@ export function TotalsPage() {
   });
 
   const accounts = useMemo(() => Array.isArray(accountsResp) ? accountsResp : [], [accountsResp]);
+  const accountLabel = (accountLike) =>
+    [accountLike?.bank, accountLike?.alias || accountLike?.name].filter(Boolean).join(' · ') || 'Cuenta';
 
   const { data: totalsResp, isLoading } = useQuery({
     queryKey: ['totals', from, to, account, granularity, status, flowType],
@@ -121,7 +123,7 @@ export function TotalsPage() {
 
       const body = rows.map(r => ([
         (r.date ? new Date(r.date).toISOString().slice(0,10) : ''),
-        (r.account?.alias || '—'),
+        (r.account ? accountLabel(r.account) : '—'),
         (r.counterparty?.name || '—'),
         (r.category?.name || '—'),
         (r.concept || '—'),
@@ -195,7 +197,7 @@ export function TotalsPage() {
         const mm = String(r.m).padStart(2, '0');
         const ym = `${mm}/${r.y}`;
         return [
-          r.accountAlias || r.account || '—',
+          [r.accountBank, r.accountAlias].filter(Boolean).join(' · ') || r.account || '—',
           ym,
           (Number(r.total) || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }),
         ];
@@ -229,9 +231,9 @@ export function TotalsPage() {
   return (
     <Box bg={pageBg} minH="calc(100vh - 120px)" p={6}>
       <Box bg={cardBg} border="1px solid" borderColor={border} rounded="lg" p={6} mb={6}>
-        <Heading size="md" mb={2}>Totales</Heading>
+        <Heading size="md" mb={2}>Resumen financiero</Heading>
         <Text fontSize="sm" color={subtle} mb={4}>
-          Filtra por fechas, cuenta, estado y tipo para visualizar y exportar.
+          Consulta totales por periodo, cuenta, estado y tipo para revisar ingresos, gastos y vencimientos pendientes.
         </Text>
 
         <Stack direction={{ base: 'column', md: 'row' }} spacing={3} mb={3}>
@@ -251,7 +253,7 @@ export function TotalsPage() {
             <option value="">Todas</option>
             {accounts.map(a => (
               <option key={a._id || a.id} value={a._id || a.id}>
-                {a.alias || a.name || 'Cuenta'}
+                {accountLabel(a)}
               </option>
             ))}
           </Select>
@@ -270,10 +272,10 @@ export function TotalsPage() {
 
         <HStack spacing={3}>
           <Button bg={btnBg} color={btnColor} _hover={{ bg: btnHover }} onClick={handleExportOverduePdf}>
-            PDF vencidos
+            PDF de plazos vencidos
           </Button>
           <Button bg={btnBg} color={btnColor} _hover={{ bg: btnHover }} onClick={handleExportPendingPerAccountMonthPdf}>
-            PDF pendientes (cuenta/mes)
+            PDF de pendientes por cuenta y mes
           </Button>
         </HStack>
       </Box>
@@ -295,7 +297,7 @@ export function TotalsPage() {
       </Box>
 
       <Box bg={cardBg} border="1px solid" borderColor={border} rounded="lg" p={6}>
-        <Heading size="sm" mb={3}>Detalle</Heading>
+        <Heading size="sm" mb={3}>Detalle por periodo</Heading>
         <Divider mb={3} />
         <Table size="sm" variant="simple">
           <Thead>

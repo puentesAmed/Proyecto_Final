@@ -71,3 +71,52 @@ export async function login(req, res) {
   const token = signUserToken(user)
   res.json({ token, user: sanitizeUser(user) })
 }
+
+export async function me(req, res) {
+  const user = await User.findById(req.user.sub)
+  if (!user) return res.status(404).json({ error: 'USER_NOT_FOUND' })
+
+  res.json({ user: sanitizeUser(user) })
+}
+
+export async function updateMe(req, res) {
+  const name = String(req.body.name || '').trim()
+
+  if (name.length < 2) {
+    return res.status(400).json({ error: 'name debe tener al menos 2 caracteres' })
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user.sub,
+    { name },
+    { new: true, runValidators: true }
+  )
+
+  if (!user) return res.status(404).json({ error: 'USER_NOT_FOUND' })
+
+  const token = signUserToken(user)
+  res.json({ token, user: sanitizeUser(user) })
+}
+
+export async function updatePassword(req, res) {
+  const { currentPassword, newPassword } = req.body
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'currentPassword y newPassword son obligatorios' })
+  }
+
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ error: 'newPassword debe tener al menos 6 caracteres' })
+  }
+
+  const user = await User.findById(req.user.sub)
+  if (!user) return res.status(404).json({ error: 'USER_NOT_FOUND' })
+
+  const ok = await bcrypt.compare(currentPassword, user.passwordHash)
+  if (!ok) return res.status(400).json({ error: 'La contraseña actual no es correcta' })
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10)
+  await user.save()
+
+  res.json({ ok: true })
+}

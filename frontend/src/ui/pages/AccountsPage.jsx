@@ -19,6 +19,12 @@ import {
   Text,
   useToast,
   VisuallyHidden,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -131,6 +137,8 @@ export function AccountsPage() {
 
   // control de carga por fila
   const [rowBusy, setRowBusy] = React.useState({});
+  const [deleteTarget, setDeleteTarget] = React.useState(null);
+  const cancelDeleteRef = React.useRef(null);
   const setBusy = (id, v) => setRowBusy((m) => ({ ...m, [id]: v === true }));
 
   // debounce para cambios de color
@@ -185,10 +193,18 @@ export function AccountsPage() {
 
   const handleDelete = (a) => {
     if (!a?._id) return;
-    const ok = window.confirm(`¿Eliminar la cuenta "${a.alias}"?`);
-    if (!ok) return;
-    setBusy(a._id, true);
-    deleteMut.mutate(a._id, { onSettled: () => setBusy(a._id, false) });
+    setDeleteTarget(a);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget?._id) return;
+    setBusy(deleteTarget._id, true);
+    deleteMut.mutate(deleteTarget._id, {
+      onSettled: () => {
+        setBusy(deleteTarget._id, false);
+        setDeleteTarget(null);
+      },
+    });
   };
 
   if (isLoading) {
@@ -335,6 +351,31 @@ export function AccountsPage() {
           </Tbody>
         </Table>
       </Box>
+
+      <AlertDialog
+        isOpen={!!deleteTarget}
+        leastDestructiveRef={cancelDeleteRef}
+        onClose={() => setDeleteTarget(null)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Eliminar cuenta
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              ¿Seguro que quieres eliminar la cuenta "{deleteTarget?.alias}"?
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelDeleteRef} onClick={() => setDeleteTarget(null)}>
+                Cancelar
+              </Button>
+              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                Eliminar
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 }

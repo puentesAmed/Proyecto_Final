@@ -64,6 +64,7 @@ import { AccountsPage } from './ui/pages/AccountsPage.jsx';
 import { ImportPage } from './ui/pages/ImportPage.jsx';
 import { SettingsPage } from './ui/pages/SettingsPage.jsx';
 import { DashboardPage } from './ui/pages/DashboardPage.jsx';
+import { ProfilePage } from './ui/pages/ProfilePage.jsx';
 import { RequireRole } from './ui/RequiereAuth.jsx';
 import { ProtectedLayout } from './ui/ProtectedLayout.jsx';
 
@@ -83,6 +84,7 @@ export const router = createBrowserRouter([
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'calendar', element: <CalendarPage /> },
       { path: 'totals', element: <TotalsPage /> },
+      { path: 'profile', element: <ProfilePage /> },
 
       {
         path: 'accounts',

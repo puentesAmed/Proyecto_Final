@@ -6,7 +6,18 @@ import esLocale from "@fullcalendar/core/locales/es";
 import { getCalendar } from "@/api/forecastsService.js";
 import { NewForecastModal } from "@/ui/components/NewForecastModal.jsx";
 import { api } from "@/lib/api.js";
-import { Button, useColorModeValue, useBreakpointValue, useToast } from "@chakra-ui/react";
+import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  Button,
+  useColorModeValue,
+  useBreakpointValue,
+  useToast,
+} from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { getAccounts } from "@/api/accountsService.js";
 import { setCashflowStatus } from "@/api/cashflowsService.js";
@@ -38,7 +49,7 @@ const toLocalYMD = (ymdOrISO) => {
 const computeUiStatus = (persistedStatus, ymd) => {
   if (!persistedStatus) return "pending";
   if (persistedStatus === "paid") return "paid";
-  if (persistedStatus === "unpaid") return "unpaid";
+  if (persistedStatus === "cancelled") return "cancelled";
 
   if (persistedStatus === "pending") {
     if (!ymd) return "pending";
@@ -145,9 +156,8 @@ function EventStatusMenu({ onChange }) {
           onWheel={(e)=> e.stopPropagation()}
         >
           <Item v="pending">Pendiente</Item>
-          <Item v="overdue">Vencido</Item>
-          <Item v="unpaid">Impagado</Item>
           <Item v="paid">Pagado</Item>
+          <Item v="cancelled">Cancelado</Item>
         </div>,
         document.body
       )}
@@ -166,6 +176,8 @@ export function CalendarPage() {
   const [events, setEvents] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const cancelDeleteRef = useRef(null);
   const { data: accounts = [] } = useQuery({ queryKey: ["accounts"], queryFn: getAccounts });
 
   // Mantener posición visible del calendario
@@ -205,12 +217,12 @@ export function CalendarPage() {
     ) || "";
 
   const getAccountAlias = (e, fallbackId = "") =>
-    e.account?.alias ??
-    e.bankAccount?.alias ??
-    e.extendedProps?.account?.alias ??
-    e.extendedProps?.bankAccount?.alias ??
-    e.account?.name ??
-    e.accountName ??
+    [e.account?.bank, e.account?.alias].filter(Boolean).join(" · ") ||
+    [e.bankAccount?.bank, e.bankAccount?.alias].filter(Boolean).join(" · ") ||
+    [e.extendedProps?.account?.bank, e.extendedProps?.account?.alias].filter(Boolean).join(" · ") ||
+    [e.extendedProps?.bankAccount?.bank, e.extendedProps?.bankAccount?.alias].filter(Boolean).join(" · ") ||
+    e.account?.name ||
+    e.accountName ||
     (fallbackId ? `Cuenta ${fallbackId}` : "Sin cuenta");
 
   const getCategoryId = (e) =>
@@ -483,11 +495,10 @@ export function CalendarPage() {
       if (!canDeleteCashflows) return;
 
       const nombre = xp?.counterparty?.name || xp?.accountAlias || "—";
-      const ok = confirm(`¿Eliminar vencimiento de ${nombre} por ${Number(xp?.amount || 0).toLocaleString("es-ES", { minimumFractionDigits: 2 })}€?`);
-      if (!ok) return;
-
-      await api.delete(`/cashflows/${id}`);
-      loadAll();
+      setDeleteTarget({
+        id,
+        label: `${nombre} por ${Number(xp?.amount || 0).toLocaleString("es-ES", { minimumFractionDigits: 2 })}€`,
+      });
     } catch (e) {
       console.error(e);
       toast({
@@ -495,6 +506,30 @@ export function CalendarPage() {
         description: "Revisa la consola para más detalles.",
         status: "error",
         duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget?.id) return;
+    try {
+      await api.delete(`/cashflows/${deleteTarget.id}`);
+      toast({
+        title: "Vencimiento eliminado",
+        status: "success",
+        duration: 2500,
+        isClosable: true,
+      });
+      setDeleteTarget(null);
+      loadAll();
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "No se pudo eliminar el vencimiento",
+        description: e?.response?.data?.message || e?.response?.data?.error || "Revisa permisos o conexión.",
+        status: "error",
+        duration: 3500,
         isClosable: true,
       });
     }
@@ -568,7 +603,7 @@ export function CalendarPage() {
       marginLeft: 6,
       background: ui === "paid" ? "#9ca3af"
                 : ui === "overdue" ? "#f59e0b"
-                : ui === "unpaid" ? "#ef4444"
+                : ui === "cancelled" ? "#6b7280"
                 : "transparent",
       color: "#fff"
     };
@@ -597,6 +632,7 @@ export function CalendarPage() {
         console.error(err);
         toast({
           title: "No se pudo actualizar el estado",
+          description: err?.response?.data?.message || err?.response?.data?.error || "Solo se permiten pending, paid o cancelled.",
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -637,7 +673,7 @@ export function CalendarPage() {
             <span style={badgeStyle}>
               {ui === "paid" ? "Pagado"
                 : ui === "overdue" ? "Vencido"
-                : ui === "unpaid" ? "Impagado" : ""}
+                : ui === "cancelled" ? "Cancelado" : ""}
             </span>
           )}
 
@@ -678,7 +714,7 @@ export function CalendarPage() {
 
     const badgeStyle = {
       fontSize:10, padding:"2px 6px", borderRadius:6, marginLeft:6,
-      background: ui==="paid" ? "#9ca3af" : ui==="overdue" ? "#f59e0b" : ui==="unpaid" ? "#ef4444" : "transparent",
+      background: ui==="paid" ? "#9ca3af" : ui==="overdue" ? "#f59e0b" : ui==="cancelled" ? "#6b7280" : "transparent",
       color:"#fff"
     };
 
@@ -705,7 +741,7 @@ export function CalendarPage() {
             )}
           </div>
           {ui && ui!=="pending" && <span style={badgeStyle}>
-            {ui==="paid" ? "Pagado" : ui==="overdue" ? "Vencido" : "Impagado"}
+            {ui==="paid" ? "Pagado" : ui==="overdue" ? "Vencido" : "Cancelado"}
           </span>}
         </div>
 
@@ -721,7 +757,16 @@ export function CalendarPage() {
               return { ...e, _status: next, _ui: uiNext,
                 extendedProps: { ...(e.extendedProps||{}), status: next, uiStatus: uiNext } };
             })); 
-            setCashflowStatus(id, next).catch(() => loadAll());
+            setCashflowStatus(id, next).catch((err) => {
+              toast({
+                title: "No se pudo actualizar el estado",
+                description: err?.response?.data?.message || err?.response?.data?.error || "Solo se permiten pending, paid o cancelled.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+              });
+              loadAll();
+            });
           }}/>}
         </div>
       </div>
@@ -806,8 +851,8 @@ export function CalendarPage() {
             <option value="">Todos</option>
             <option value="pending">Pendiente</option>
             <option value="overdue">Vencido</option>
-            <option value="unpaid">Impagado</option>
             <option value="paid">Pagado</option>
+            <option value="cancelled">Cancelado</option>
           </select>
         </label>
 
@@ -836,7 +881,7 @@ export function CalendarPage() {
                     background: a.color || "#999", border:"1px solid #ddd",
                   }}
                 />
-                <span>{a.alias}</span>
+                <span>{[a.bank, a.alias].filter(Boolean).join(" · ") || a.alias}</span>
               </span>
             ))}
           </div>
@@ -914,6 +959,31 @@ export function CalendarPage() {
           onClose={() => { setOpen(false); loadAll(); }}
         />
       )}
+
+      <AlertDialog
+        isOpen={!!deleteTarget}
+        leastDestructiveRef={cancelDeleteRef}
+        onClose={() => setDeleteTarget(null)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Eliminar vencimiento
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              ¿Seguro que quieres eliminar el vencimiento de {deleteTarget?.label}? Esta acción no se puede deshacer.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelDeleteRef} onClick={() => setDeleteTarget(null)}>
+                Cancelar
+              </Button>
+              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                Eliminar
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </div>
   );
 }

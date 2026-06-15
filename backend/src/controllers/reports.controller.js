@@ -84,23 +84,16 @@ export const overdue = async (req, res) => {
       match.account = new mongoose.Types.ObjectId(req.query.account);
     }
 
-    // LOG DE DEPURACIÓN
-    console.log('[overdue] params:', { toParam, toEnd, account: req.query.account });
-    const countAll = await Cashflow.countDocuments({});
-    const countPending = await Cashflow.countDocuments({ status: 'pending' });
-    console.log('[overdue] count all:', countAll, 'count pending:', countPending);
-
     const rows = await Cashflow.find(
       match,
       { date:1, amount:1, status:1, concept:1, account:1, counterparty:1, category:1, type:1 }
     )
     .sort({ date:1 })
-    .populate({ path:'account', select:'alias' })
+    .populate({ path:'account', select:'alias bank' })
     .populate({ path:'counterparty', select:'name' })
     .populate({ path:'category', select:'name' })
     .lean();
 
-    console.log('[overdue] matched rows:', rows.length);
     res.json(rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -158,6 +151,7 @@ export const pendingPerAccountMonth = async (req, res) => {
         $project: {
           accountId: '$_id.account',
           accountAlias: '$acc.alias',
+          accountBank: '$acc.bank',
           y: '$_id.y',
           m: '$_id.m',
           total: 1,

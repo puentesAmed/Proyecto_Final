@@ -179,10 +179,10 @@ export const clearAll = async (_req, res) => {
 };
 
 //HANDLER PARA ACTUALIZAR EL STATUS DE UN CASHFLOW
-// === Estado UI derivado (pendiente | vencido | pagado) ===
+// === Estado UI derivado: vencido no se persiste, se calcula si fecha pasada + pending ===
 const computeUiStatus = (doc) => {
   if (doc.status === 'paid') return 'paid';
-  if (doc.status === 'unpaid')  return 'unpaid';
+  if (doc.status === 'cancelled') return 'cancelled';
   // compara solo por Y-M-D local
   const todayYMD = toYMD(new Date());
   const docYMD   = toYMD(new Date(doc.date));
@@ -229,7 +229,7 @@ export const calendar = async (req, res) => {
       .sort({ date: 1 })
       .limit(1000)
       .populate({ path: 'counterparty', select: 'name' })
-      .populate({ path: 'account', select: 'alias color' })
+      .populate({ path: 'account', select: 'alias bank color' })
       .populate({ path: 'category', select: 'name' })
       .lean();
 
@@ -252,6 +252,7 @@ export const calendar = async (req, res) => {
       let color      = base;
       if (uiStatus === 'paid')    color = '#9ca3af';
       if (uiStatus === 'overdue') color = '#f59e0b';
+      if (uiStatus === 'cancelled') color = '#6b7280';
 
       return {
         id: String(i._id),
@@ -286,9 +287,12 @@ export const updateStatus = async (req, res) => {
   try {
     const { id } = req.params
     const { status } = req.body
-    const allowed = ['pending','paid','cancelled', 'unpaid']
+    const allowed = ['pending','paid','cancelled']
     if (!allowed.includes(status)) {
-      return res.status(400).json({ error: 'INVALID_STATUS' })
+      return res.status(400).json({
+        error: 'INVALID_STATUS',
+        message: 'Estado no válido. Usa pending, paid o cancelled. Vencido se calcula automáticamente si la fecha pasó y sigue pending.',
+      })
     }
     const doc = await Cashflow.findByIdAndUpdate(
       id,

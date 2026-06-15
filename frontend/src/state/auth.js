@@ -20,7 +20,13 @@ export const useAuth = create(persist(
         logout: () => {
             useNotifications.getState().endSession()
             set({ user:null, token:null })
-        }
+        },
+        updateSession: (user, token) => {
+            set((state) => ({
+                user: user ?? state.user,
+                token: token ?? state.token,
+            }))
+        },
     }),
     { name:'auth' } // guarda en localStorage.auth
 ))

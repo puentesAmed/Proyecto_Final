@@ -35,10 +35,11 @@ import { useNotifications } from '@/state/notifications.js';
 const PAGES = Object.freeze([
   { name: 'Dashboard', path: '/dashboard' },
   { name: 'Calendario', path: '/calendar' },
-  { name: 'Totales', path: '/totals' },
+  { name: 'Resumen financiero', path: '/totals' },
+  { name: 'Mi cuenta', path: '/profile' },
   { name: 'Cuentas', path: '/accounts', roles: ['admin'] },
   { name: 'Importar', path: '/import', roles: ['admin'] },
-  { name: 'Ajustes', path: '/settings', roles: ['admin'] },
+  { name: 'Configuración', path: '/settings', roles: ['admin'] },
 ]);
 
 function NavItem({ to, children, onClick }) {
