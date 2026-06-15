@@ -25,6 +25,7 @@ import {
   MenuList,
   MenuItem,
   MenuDivider,
+  Portal,
   useToast,
 } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon, SunIcon, MoonIcon, BellIcon } from '@chakra-ui/icons';
@@ -180,7 +181,7 @@ export function AppLayout() {
 
           <HStack spacing={{ base: 1, md: 2 }} flexShrink={0}>
             <Box position="relative" flexShrink={0}>
-              <Menu>
+              <Menu placement="bottom-end">
                 <MenuButton
                   as={IconButton}
                   aria-label="Notificaciones"
@@ -189,24 +190,26 @@ export function AppLayout() {
                   size="sm"
                   onClick={markAllAsRead}
                 />
-                <MenuList maxW="380px">
-                  <Text px={3} py={2} fontSize="sm" fontWeight="bold">
-                    Notificaciones recientes
-                  </Text>
-                  <MenuDivider />
-                  {visibleNotifications.length === 0 ? (
-                    <MenuItem isDisabled>No hay notificaciones</MenuItem>
-                  ) : (
-                    visibleNotifications.slice(0, 6).map((item) => (
-                      <MenuItem key={item.id} display="block" whiteSpace="normal">
-                        <Text fontWeight="semibold">{item.title}</Text>
-                        {item.message ? <Text fontSize="sm">{item.message}</Text> : null}
-                      </MenuItem>
-                    ))
-                  )}
-                  <MenuDivider />
-                  <MenuItem onClick={clearAll}>Limpiar notificaciones</MenuItem>
-                </MenuList>
+                <Portal>
+                  <MenuList maxW="380px" zIndex={2000}>
+                    <Text px={3} py={2} fontSize="sm" fontWeight="bold">
+                      Notificaciones recientes
+                    </Text>
+                    <MenuDivider />
+                    {visibleNotifications.length === 0 ? (
+                      <MenuItem isDisabled>No hay notificaciones</MenuItem>
+                    ) : (
+                      visibleNotifications.slice(0, 6).map((item) => (
+                        <MenuItem key={item.id} display="block" whiteSpace="normal">
+                          <Text fontWeight="semibold">{item.title}</Text>
+                          {item.message ? <Text fontSize="sm">{item.message}</Text> : null}
+                        </MenuItem>
+                      ))
+                    )}
+                    <MenuDivider />
+                    <MenuItem onClick={clearAll}>Limpiar notificaciones</MenuItem>
+                  </MenuList>
+                </Portal>
               </Menu>
               {unreadCount > 0 && (
                 <Badge
@@ -233,7 +236,7 @@ export function AppLayout() {
               flexShrink={0}
             />
 
-            <Menu>
+            <Menu placement="bottom-end">
               <MenuButton
                 as={IconButton}
                 aria-label="Menú de usuario"
@@ -242,15 +245,17 @@ export function AppLayout() {
                 size="sm"
                 flexShrink={0}
               />
-              <MenuList>
-                <Box px={3} py={2}>
-                  <Text fontWeight="semibold" noOfLines={1}>{user?.name || 'Usuario'}</Text>
-                  <Text fontSize="sm" color="gray.500" noOfLines={1}>{user?.email}</Text>
-                </Box>
-                <MenuDivider />
-                <MenuItem onClick={() => nav('/profile')}>Mi cuenta</MenuItem>
-                <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
-              </MenuList>
+              <Portal>
+                <MenuList zIndex={2000} minW="220px" maxW="280px" overflow="visible">
+                  <Box px={3} py={2}>
+                    <Text fontWeight="semibold" noOfLines={1}>{user?.name || 'Usuario'}</Text>
+                    <Text fontSize="sm" color="gray.500" noOfLines={1}>{user?.email}</Text>
+                  </Box>
+                  <MenuDivider />
+                  <MenuItem onClick={() => nav('/profile')}>Mi cuenta</MenuItem>
+                  <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
+                </MenuList>
+              </Portal>
             </Menu>
           </HStack>
         </Flex>
