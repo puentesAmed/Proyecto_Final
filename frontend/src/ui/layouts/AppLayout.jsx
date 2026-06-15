@@ -154,7 +154,17 @@ export function AppLayout() {
             flexShrink={0}
           />
 
-          <HStack spacing={{ base: 2, md: 3 }} minW={0} flexShrink={1}>
+          <HStack
+            as={NavLink}
+            to="/calendar"
+            spacing={{ base: 2, md: 3 }}
+            minW={0}
+            flexShrink={1}
+            cursor="pointer"
+            textDecoration="none"
+            _hover={{ textDecoration: 'none' }}
+            aria-label="Ir al calendario"
+          >
             <Box w="9" h="9" borderRadius="xl" bg={brandDot} boxShadow="md" aria-hidden flexShrink={0} />
             <Box lineHeight="short" minW={0}>
               <Text fontWeight="bold" noOfLines={1} fontSize={{ base: 'sm', md: 'md' }}>
